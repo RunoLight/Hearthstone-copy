@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -12,15 +13,41 @@ public class PlayingCard : MonoBehaviour
 {
     public async Task SetSomething(int amount)
     {
-        await Task.Delay(1000);
-        textDamage.text = amount.ToString();
+        var currentSomething = Convert.ToInt32(textDamage.text);
+
+        await textDamage.transform.DOScale(new Vector3(1.4f, 1.4f, 1f), 0.3f);
+
+        var totalTime = 1f;
+        var totalDelta = Mathf.Abs(currentSomething - amount);
+        if (totalDelta < 3)
+        {
+            totalTime = 0.2f;
+        }
+        var timePerOneDelta = totalTime / totalDelta;
+        
+        var delta = 0;
+        do
+        {
+            await Task.Delay(TimeSpan.FromSeconds(timePerOneDelta));
+
+            delta = currentSomething > amount ? -1 :
+                currentSomething < amount ? 1 :
+                0;
+
+            currentSomething += delta;
+            textDamage.text = currentSomething.ToString();
+            
+        } while (delta != 0);
+        var t = textDamage.transform.DOScale(new Vector3(1f, 1f, 1f), 0.3f);
+        await t;
+        await Task.Delay(TimeSpan.FromSeconds(0.2f));
     }
 
     public int GetSomething()
     {
         return Convert.ToInt32(textDamage.text);
     }
-    
+
     [SerializeField] private TMP_Text textTitle;
     [SerializeField] private TMP_Text textDescription;
     [SerializeField] private TMP_Text textHealth;
