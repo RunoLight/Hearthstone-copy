@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
-public class orderCards : MonoBehaviour
+public class DeckHand : MonoBehaviour
 {
     public PlayingCard cardPrefab;
 
