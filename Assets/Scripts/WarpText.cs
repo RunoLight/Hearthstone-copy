@@ -45,33 +45,29 @@ public class WarpText : MonoBehaviour
         Vector3[] vertices;
         Matrix4x4 matrix;
 
-        mTextComponent.havePropertiesChanged = true; // Need to force the TextMeshPro Object to be updated.
+        // Need to force the TextMeshPro Object to be updated.
+        mTextComponent.havePropertiesChanged = true; 
         float oldCurveScale = curveScale;
         AnimationCurve oldCurve = CopyAnimationCurve(vertexCurve);
 
         while (true)
         {
-            if (!mTextComponent.havePropertiesChanged && oldCurveScale == curveScale &&
-                oldCurve.keys[1].value == vertexCurve.keys[1].value)
+            if (!mTextComponent.havePropertiesChanged && oldCurve.keys[1].value == vertexCurve.keys[1].value)
             {
-                // yield return null;
-                // continue;
+                yield return null;
+                continue;
             }
 
             oldCurveScale = curveScale;
             oldCurve = CopyAnimationCurve(vertexCurve);
 
-            mTextComponent
-                .ForceMeshUpdate(); // Generate the mesh and populate the textInfo with data we can use and manipulate.
+            // Generate the mesh and populate the textInfo with data we can use and manipulate.
+            mTextComponent.ForceMeshUpdate(); 
 
             TMP_TextInfo textInfo = mTextComponent.textInfo;
             int characterCount = textInfo.characterCount;
-
-
+            
             if (characterCount == 0) continue;
-
-            //vertices = textInfo.meshInfo[0].vertices;
-            //int lastVertexIndex = textInfo.characterInfo[characterCount - 1].vertexIndex;
 
             float boundsMinX = mTextComponent.bounds.min.x; //textInfo.meshInfo[0].mesh.bounds.min.x;
             float boundsMaxX = mTextComponent.bounds.max.x; //textInfo.meshInfo[0].mesh.bounds.max.x;
