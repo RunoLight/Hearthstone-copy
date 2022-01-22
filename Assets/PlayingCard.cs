@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -8,6 +10,17 @@ using static UnityEngine.Networking.UnityWebRequest.Result;
 
 public class PlayingCard : MonoBehaviour
 {
+    public async Task SetSomething(int amount)
+    {
+        await Task.Delay(1000);
+        textDamage.text = amount.ToString();
+    }
+
+    public int GetSomething()
+    {
+        return Convert.ToInt32(textDamage.text);
+    }
+    
     [SerializeField] private TMP_Text textTitle;
     [SerializeField] private TMP_Text textDescription;
     [SerializeField] private TMP_Text textHealth;

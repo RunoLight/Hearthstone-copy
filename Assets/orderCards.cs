@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,10 +23,28 @@ public class orderCards : MonoBehaviour
     public float totalTwist = 20f;
     public float scalingFactor = 0.01f;
 
+    public Button btn;
+    
     private void Start()
     {
         SpawnCards();
         FitCards();
+        btn.onClick.AddListener(async () =>
+        {
+            btn.interactable = false;
+            foreach (PlayingCard card in cards)
+            {
+                var oldAmount = card.GetSomething();
+                int newAmount = oldAmount;
+                while (oldAmount == newAmount)
+                {
+                    newAmount= Random.Range(-2, 9);
+                }
+                
+                await card.SetSomething(newAmount);
+            }
+            btn.interactable = true;
+        });
     }
 
     public void SpawnCards()
