@@ -16,8 +16,8 @@ namespace GamePlay
 {
     public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
-        // Mouse enter when true, exit when false
-        public event Action<bool, PlayingCard> OnMouse;
+        // True if hovered, false otherwise
+        public event Action<bool, PlayingCard> OnHover;
     
         [SerializeField] private TMP_Text textTitle;
         [SerializeField] private TMP_Text textDescription;
@@ -110,25 +110,6 @@ namespace GamePlay
             materialInstance = Instantiate(outlineMaterial);
             materialInstance.SetFloat(settings.Thickness, settings.MinThickness);
         }
-        
-        IEnumerator Start()
-        {
-            Sprite sprite = null;
-    
-            var request = UnityWebRequestTexture.GetTexture("https://picsum.photos/200/300");
-            yield return request.SendWebRequest();
-            if (request.result != Success)
-            {
-                Debug.Log(request.error);
-            }
-            else
-            {
-                var texture = ((DownloadHandlerTexture)request.downloadHandler).texture;
-                sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0, 0));
-            }
-    
-            Setup("Kronx Dragongoof", "Description", 2, 3, 4, sprite);
-        }
 
         #endregion
 
@@ -157,13 +138,13 @@ namespace GamePlay
                 return;
             if (!availableToSelect)
                 return;
-            OnMouse?.Invoke(true, this);
+            OnHover?.Invoke(true, this);
             Glow(true);
         }
     
         public void OnPointerExit(PointerEventData eventData)
         {
-            OnMouse?.Invoke(false, this);
+            OnHover?.Invoke(false, this);
             if (DeckHand.I.selectedCard != this)
             {
                 Glow(false);
@@ -171,19 +152,19 @@ namespace GamePlay
         }
 
         #endregion
-    
-        private void Setup(string title, string description, int health, int damage, int manaCost, Sprite avatar)
+
+        public void Setup(CardData data)
         {
-            textTitle.text = title;
-            textDescription.text = description;
-            imageAvatar.sprite = avatar;
-        
-            Health = health;
-            textHealth.text = health.ToString();
-            Damage = damage;
-            textDamage.text = damage.ToString();
-            ManaCost = manaCost;
-            textManaCost.text = manaCost.ToString();
+            textTitle.text = data.title;
+            textDescription.text = data.description;
+            imageAvatar.sprite = data.image;
+            
+            Health = data.health;
+            textHealth.text = data.health.ToString();
+            Damage = data.damage;
+            textDamage.text = data.damage.ToString();
+            ManaCost = data.manaCost;
+            textManaCost.text = data.manaCost.ToString();
         }
 
         private async Task SetParameterSmoothly(int from, int to, TMP_Text textField)
@@ -242,7 +223,6 @@ namespace GamePlay
             }
         }
     
-        // TODO: Если отпустить карту на то чтобы она поехала сама и не двигать мышкой то не будет спадать glow
         private async Task GlowEnd(CancellationToken t)
         {
             var mat = cardImage.material;

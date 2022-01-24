@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1607cd621d460434e94eb86231576eac, type: 3}
+  m_Name: Card data 2
+  m_EditorClassIdentifier: 
+  title: Very Red Rift
+  description: 'Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum '
+  damage: 5
+  health: 5
+  manaCost: 5
+  sourceType: 1
+  image: {fileID: 0}
+  imageUrl: https://picsum.photos/200/300

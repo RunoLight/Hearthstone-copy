@@ -951,6 +951,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cardSettings: {fileID: 11400000, guid: 3656ac03d517ba34fb09c416eeac7518, type: 2}
   deckSettings: {fileID: 11400000, guid: bf92468082cd196489085d33d77645b0, type: 2}
+  deck:
+    cardConfigs:
+    - {fileID: 11400000, guid: 9abeeb66652943a46bccb8e52cff9bff, type: 2}
+    - {fileID: 11400000, guid: ea4e22557cffbb74a868cbe994fdccbb, type: 2}
+    - {fileID: 11400000, guid: b242aa3e58aba434cbde9d844e534b0f, type: 2}
+    - {fileID: 11400000, guid: 996d7e2dfc1019f489b280bf4ad7e330, type: 2}
+    - {fileID: 11400000, guid: 9d0d9f3e40ad3a44c9c2479e66439832, type: 2}
+    - {fileID: 11400000, guid: 636750b0ef7dcda4298e3658c500300a, type: 2}
+    - {fileID: 11400000, guid: 654c556c510a02f48b89591c11b1395e, type: 2}
 --- !u!1 &1407307537
 GameObject:
   m_ObjectHideFlags: 0

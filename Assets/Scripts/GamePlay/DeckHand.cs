@@ -56,6 +56,7 @@ namespace GamePlay
         {
             I = this;
             settings = GameConfigs.I.DeckSettings;
+            GameConfigs.I.deck.Prepare();
             Сamera = Camera.main;
             btn.onClick.AddListener(ButtonCallback);
         }
@@ -228,15 +229,16 @@ namespace GamePlay
             }
         }
 
-        private void SpawnCards()
+        private async Task SpawnCards()
         {
             var cardsAmount = Random.Range(settings.minimalCardAmount, settings.maximalCardAmount);
-            for (var i = 0; i < cardsAmount; i++) cards.Add(Instantiate(settings.cardPrefab, cardsParent));
-
-            foreach (var card in cards)
+            for (var i = 0; i < cardsAmount; i++)
             {
-                Debug.Log(card.name);
-                card.OnMouse += (isSelected, c) =>
+                var data = await GameConfigs.I.deck.GetCard();
+
+                var newCard = Instantiate(settings.cardPrefab, cardsParent);
+                newCard.Setup(data);
+                newCard.OnHover += (isSelected, c) =>
                 {
                     if (isSelected)
                     {
@@ -250,6 +252,7 @@ namespace GamePlay
                         c.transform.DOScale(settings.scaleBack, settings.scaleBackDuration);
                     }
                 };
+                cards.Add(newCard);
             }
         }
 
