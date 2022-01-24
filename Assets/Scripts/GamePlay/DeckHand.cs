@@ -61,9 +61,9 @@ namespace GamePlay
             btn.onClick.AddListener(ButtonCallback);
         }
 
-        private void Start()
+        private async void Start()
         {
-            SpawnCards();
+            await SpawnCards();
             FitCards(true);
         }
 
@@ -232,10 +232,13 @@ namespace GamePlay
         private async Task SpawnCards()
         {
             var cardsAmount = Random.Range(settings.minimalCardAmount, settings.maximalCardAmount);
+            var currentHandData = new List<CardData>(cardsAmount);
+            for (var i = 0; i < cardsAmount; i++)
+                currentHandData.Add(await GameConfigs.I.deck.GetCard());
+
             for (var i = 0; i < cardsAmount; i++)
             {
-                var data = await GameConfigs.I.deck.GetCard();
-
+                var data = currentHandData[i];
                 var newCard = Instantiate(settings.cardPrefab, cardsParent);
                 newCard.Setup(data);
                 newCard.OnHover += (isSelected, c) =>
