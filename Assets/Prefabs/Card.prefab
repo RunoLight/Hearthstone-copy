@@ -273,6 +273,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5c5fc1ca7322f446961f756b4a6d283, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cardImage: {fileID: 5318429002056429457}
+  outlineMaterial: {fileID: 2100000, guid: a64118545375ef34c88b3378008ac76a, type: 2}
   textTitle: {fileID: 3314156716495468938}
   textDescription: {fileID: 3314156716222843558}
   textHealth: {fileID: 7547865835254774799}

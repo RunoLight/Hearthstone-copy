@@ -1,30 +1,95 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 using static UnityEngine.Networking.UnityWebRequest.Result;
 
-public class PlayingCard : MonoBehaviour
+public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
+    [SerializeField] private Image cardImage;
+    [SerializeField] private Material outlineMaterial;
+    private Material materialInstance;
+    private static readonly int Thickness = Shader.PropertyToID("_Thickness");
+
+    private void Awake()
+    {
+        cardImage.material = null;
+        materialInstance = Instantiate(outlineMaterial);
+        materialInstance.SetFloat(Thickness, 0f);
+    }
+
     // Mouse enter when true, exit when false
     public event Action<bool, PlayingCard> OnMouse;
+
+    private CancellationTokenSource glowTaskCancelSource;
+    private Task glowTask;
     
-    private void OnMouseEnter()
+    public void OnPointerEnter(PointerEventData eventData)
     {
         Debug.Log("mouse enter");
         OnMouse?.Invoke(true, this);
-    }
 
-    private void OnMouseExit()
+
+        glowTaskCancelSource?.Cancel();
+        glowTaskCancelSource = new CancellationTokenSource();
+        glowTask = GlowStart(glowTaskCancelSource.Token);
+    }
+    
+    public void OnPointerExit(PointerEventData eventData)
     {
         OnMouse?.Invoke(false, this);
         
+        glowTaskCancelSource?.Cancel();
+        glowTaskCancelSource = new CancellationTokenSource();
+        glowTask = GlowEnd(glowTaskCancelSource.Token);
     }
+
+    private const float MAXThickness = 1.3f;
+    private const float MINThickness = 0f;
+    private const float ThicknessStep = 0.06f;
+    
+    public async Task GlowStart(CancellationToken t)
+    {
+        cardImage.material = materialInstance;
+        
+        var mat = cardImage.material;
+        var newThickness = mat.GetFloat(Thickness);
+        while (newThickness < MAXThickness)
+        {
+            newThickness = Mathf.Clamp(newThickness + ThicknessStep, MINThickness, MAXThickness);
+            mat.SetFloat(Thickness, newThickness);
+            await Task.Yield();
+            if (t.IsCancellationRequested)
+            {
+                return;
+            }
+        }
+    }
+    
+    public async Task GlowEnd(CancellationToken t)
+    {
+        var mat = cardImage.material;
+        var newThickness = mat.GetFloat(Thickness);
+        while (newThickness > MINThickness)
+        {
+            newThickness = Mathf.Clamp(newThickness - ThicknessStep, MINThickness, MAXThickness);
+            mat.SetFloat(Thickness, newThickness);
+            await Task.Yield();
+            if (t.IsCancellationRequested)
+            {
+                return;
+            }
+        }
+        cardImage.material = null;
+    }
+    
+ 
     
     public async Task SetSomething(int amount)
     {
@@ -79,9 +144,6 @@ public class PlayingCard : MonoBehaviour
         textManaCost.text = manaCost.ToString();
         imageAvatar.sprite = avatar;
     }
-
-
-
 
     // Start is called before the first frame update
     IEnumerator Start()

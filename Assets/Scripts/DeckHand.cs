@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using DG.Tweening;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
@@ -68,11 +69,14 @@ public class DeckHand : MonoBehaviour
                 if (isSelected)
                 {
                     c.transform.SetParent(selectedCardParent);
+                    c.transform.DOScale(new Vector3(1.2f, 1.2f, 1f), 0.3f);
                 }
                 else
                 {
                     c.transform.SetParent(cardsParent);
                     c.transform.SetSiblingIndex(cards.FindIndex(pc => pc == c));
+                    c.transform.DOScale(new Vector3(1f, 1f, 1f), 0.3f);
+
                 }
             };
         }
