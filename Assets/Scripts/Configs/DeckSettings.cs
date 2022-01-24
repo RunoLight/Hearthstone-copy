@@ -22,5 +22,8 @@ namespace Configs
         [Header("Deselection")]
         public Vector3 scaleBack = Vector3.one;
         public float scaleBackDuration = 0.2f;
+        [Header("New value generator")] 
+        public int minimalValue = -2;
+        public int maximalValue = 9;
     }
 }

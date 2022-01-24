@@ -65,15 +65,20 @@ public class DeckHand : MonoBehaviour
         btn.onClick.AddListener(async () =>
         {
             btn.interactable = false;
-            foreach (var card in cards)
+            while (cards.Count != 0)
             {
-                var oldAmount = card.Health;
-                var newAmount = oldAmount;
-                while (oldAmount == newAmount) newAmount = Random.Range(-2, 9);
+                foreach (var card in cards)
+                {
+                    var oldAmount = card.Health;
+                    var newAmount = oldAmount;
+                    while (oldAmount == newAmount)
+                        newAmount = Random.Range(settings.minimalValue, settings.maximalValue);
 
-                await card.SetHealth(newAmount);
+                    await card.SetHealth(newAmount);
+                }
             }
 
+            Debug.Log("Game completed!");
             btn.interactable = true;
         });
     }
