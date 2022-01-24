@@ -14,7 +14,11 @@ public class DeckHand : MonoBehaviour
     public int maximalCardAmount;
     
     public Transform start; //Location where to start adding my cards
-    public Transform HandDeck; //The hand panel reference
+    public Transform cardsParent; //The hand panel reference
+    public Transform selectedCardParent; //The hand panel reference
+    
+    
+    
     [HideInInspector] public int howManyAdded;
     public float gapFromOneItemToTheNextOne; //the gap I need between each card
 
@@ -52,7 +56,25 @@ public class DeckHand : MonoBehaviour
         var cardsAmount = Random.Range(minimalCardAmount, maximalCardAmount);
         for (int i = 0; i < cardsAmount; i++)
         {
-            cards.Add(Instantiate(cardPrefab, HandDeck.transform));
+            cards.Add(Instantiate(cardPrefab, cardsParent));
+        }
+
+        foreach (PlayingCard card in cards)
+        {
+            Debug.Log(card.name);
+            card.OnMouse += (isSelected, c) =>
+            {
+                Debug.Log(123);
+                if (isSelected)
+                {
+                    c.transform.SetParent(selectedCardParent);
+                }
+                else
+                {
+                    c.transform.SetParent(cardsParent);
+                    c.transform.SetSiblingIndex(cards.FindIndex(pc => pc == c));
+                }
+            };
         }
     }
 
@@ -78,7 +100,7 @@ public class DeckHand : MonoBehaviour
             var tr = item.transform;
             var position = start.position + new Vector3(howManyAdded * gapFromOneItemToTheNextOne, 0, 0);
             tr.position = position;
-            tr.SetParent(HandDeck);
+            tr.SetParent(cardsParent);
 
             var twistForThisCard = startTwist - howManyAdded * twistPerCard;
 
@@ -101,11 +123,11 @@ public class DeckHand : MonoBehaviour
     {
         // start
         Handles.color = Color.yellow;
-        Handles.DrawWireDisc(start.transform.position, Vector3.forward, 0.5f);
+        Handles.DrawWireDisc(start.transform.position, Vector3.forward, 0.1f);
         Handles.color = Color.green;
         foreach (var item in cards)
         {
-            Handles.DrawWireDisc(item.transform.position, Vector3.forward, 0.5f);
+            Handles.DrawWireDisc(item.transform.position, Vector3.forward, 0.1f);
         }
     }
 #endif

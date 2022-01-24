@@ -11,6 +11,21 @@ using static UnityEngine.Networking.UnityWebRequest.Result;
 
 public class PlayingCard : MonoBehaviour
 {
+    // Mouse enter when true, exit when false
+    public event Action<bool, PlayingCard> OnMouse;
+    
+    private void OnMouseEnter()
+    {
+        Debug.Log("mouse enter");
+        OnMouse?.Invoke(true, this);
+    }
+
+    private void OnMouseExit()
+    {
+        OnMouse?.Invoke(false, this);
+        
+    }
+    
     public async Task SetSomething(int amount)
     {
         var currentSomething = Convert.ToInt32(textDamage.text);
@@ -64,6 +79,8 @@ public class PlayingCard : MonoBehaviour
         textManaCost.text = manaCost.ToString();
         imageAvatar.sprite = avatar;
     }
+
+
 
 
     // Start is called before the first frame update
