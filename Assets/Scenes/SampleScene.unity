@@ -155,7 +155,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -196, y: 49}
+  m_AnchoredPosition: {x: 0.1, y: 23.8}
   m_SizeDelta: {x: 60, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &519420028
@@ -504,11 +504,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardPrefab: {fileID: 3314156715523707926, guid: 84504e6117fcb4a45a9fbe9e4aad8b71, type: 3}
-  minimalCardAmount: 4
-  maximalCardAmount: 6
+  minimalCardAmount: 5
+  maximalCardAmount: 5
   start: {fileID: 106918799}
   cardsParent: {fileID: 1931694719}
   selectedCardParent: {fileID: 940509708}
+  graphicRaycaster: {fileID: 1987117929}
   howManyAdded: 0
   gapFromOneItemToTheNextOne: 1
   cards: []

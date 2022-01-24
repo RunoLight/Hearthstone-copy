@@ -112,7 +112,6 @@ public class DeckHand : MonoBehaviour
             Debug.Log(card.name);
             card.OnMouse += (isSelected, c) =>
             {
-                Debug.Log(123);
                 if (isSelected)
                 {
                     c.transform.SetParent(selectedCardParent);
@@ -123,7 +122,6 @@ public class DeckHand : MonoBehaviour
                     c.transform.SetParent(cardsParent);
                     c.transform.SetSiblingIndex(cards.FindIndex(pc => pc == c));
                     c.transform.DOScale(new Vector3(1f, 1f, 1f), 0.3f);
-
                 }
             };
         }
@@ -131,8 +129,7 @@ public class DeckHand : MonoBehaviour
 
     public void FitCards()
     {
-        if (cards.Count == 0) //if list is null, stop function
-            return;
+        if (cards.Count == 0) return;
 
         howManyAdded = 0;
         // 20f for example, try various values
@@ -146,10 +143,62 @@ public class DeckHand : MonoBehaviour
         // that should be roughly one-tenth the height of one
         // of your cards, just experiment until it works well
 
+        var idx = -1;
         foreach (var item in cards)
         {
+            idx++;
+            
             var tr = item.transform;
-            var position = start.position + new Vector3(howManyAdded * gapFromOneItemToTheNextOne, 0, 0);
+            Vector3 position = Vector3.zero;
+
+            int halfCards = cards.Count / 2;
+            if (cards.Count % 2 == 0)
+            {
+                if (idx == halfCards)
+                {
+                    position = start.position - new Vector3(0.5f * gapFromOneItemToTheNextOne, 0, 0);
+                }
+                else if (idx == halfCards - 1)
+                {
+                    position = start.position + new Vector3(0.5f * gapFromOneItemToTheNextOne, 0, 0);
+                }
+                else if (idx < halfCards - 1)
+                {
+                    position = start.position - new Vector3(0.5f * gapFromOneItemToTheNextOne, 0, 0);
+                    var deltaFromCenter = Mathf.Abs(idx - (halfCards - 1));
+                    position -= new Vector3(deltaFromCenter * gapFromOneItemToTheNextOne, 0, 0);
+                }
+                else if (idx > halfCards)
+                {
+                    position = start.position + new Vector3(0.5f * gapFromOneItemToTheNextOne, 0, 0);
+                    var deltaFromCenter = Mathf.Abs(idx - (halfCards));
+                    position += new Vector3(deltaFromCenter * gapFromOneItemToTheNextOne, 0, 0);
+                }
+            }
+            else
+            {
+                if (idx < halfCards)
+                {
+                    position = start.position;
+                    var deltaFromCenter = Mathf.Abs(idx - (halfCards));
+                    position -= new Vector3(deltaFromCenter * gapFromOneItemToTheNextOne, 0, 0);
+                }
+                else if (idx > halfCards)
+                {
+                    position = start.position;
+                    var deltaFromCenter = Mathf.Abs(idx - (halfCards));
+                    position += new Vector3(deltaFromCenter * gapFromOneItemToTheNextOne, 0, 0);
+                }
+                else if (idx == halfCards)
+                {
+                    position = start.position;
+
+                    
+
+                }
+            }
+            
+            // position = start.position + new Vector3(howManyAdded * gapFromOneItemToTheNextOne, 0, 0);
             tr.position = position;
             tr.SetParent(cardsParent);
 

@@ -32,7 +32,6 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     
     public void OnPointerEnter(PointerEventData eventData)
     {
-        Debug.Log("mouse enter");
         OnMouse?.Invoke(true, this);
 
 
