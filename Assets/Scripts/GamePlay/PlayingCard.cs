@@ -34,6 +34,7 @@ namespace GamePlay
         private Task glowDownTask;
     
         private CanvasGroup canvasGroup;
+        public bool availableToSelect = true;
 
         /// <summary>
         /// Tweens used to rotate or move card. Used to destroy current working tweens to add new ones
@@ -61,14 +62,18 @@ namespace GamePlay
         public int Damage { get; private set; }
         public async Task SetDamage(int value)
         {
+            availableToSelect = false;
             var t = SetParameterSmoothly(Damage, value, textDamage);
             Damage = value;
             await t;
+            availableToSelect = true;
         }
 
         public int Health { get; private set; }
         public async Task SetHealth(int value)
         {
+            availableToSelect = false;
+            Glow(false);
             var t = SetParameterSmoothly(Health, value, textHealth);
             Health = value;
             await t;
@@ -78,15 +83,19 @@ namespace GamePlay
                 KillTweens();
                 DeckHand.I.DeleteCard(this);
                 Destroy(gameObject);
+                return;
             }
+            availableToSelect = true;
         }
 
         public int ManaCost { get; private set; }
         public async Task SetManaCost(int value)
         {
+            availableToSelect = false;
             var t = SetParameterSmoothly(ManaCost, value, textManaCost);
             ManaCost = value;
             await t;
+            availableToSelect = true;
         }
 
         #endregion
@@ -145,9 +154,9 @@ namespace GamePlay
         public void OnPointerEnter(PointerEventData eventData)
         {
             if (DeckHand.I.SomeCardSelected && DeckHand.I.selectedCard != this)
-            {
                 return;
-            }
+            if (!availableToSelect)
+                return;
             OnMouse?.Invoke(true, this);
             Glow(true);
         }
