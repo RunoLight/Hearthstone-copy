@@ -25,5 +25,7 @@ namespace Configs
         [Header("New value generator")] 
         public int minimalValue = -2;
         public int maximalValue = 9;
+        [Space(10)] 
+        public float cardFitDuration = 0.3f;
     }
 }

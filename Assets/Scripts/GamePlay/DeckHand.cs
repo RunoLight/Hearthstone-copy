@@ -245,8 +245,8 @@ namespace GamePlay
                 else
                 {
                     item.KillTweens();
-                    item.AddTween(tr.DOMove(position, 1.0f));
-                    item.AddTween(item.transform.DORotate(rotationAnglesForThisCard, 1.0f));
+                    item.AddTween(tr.DOMove(position, settings.cardFitDuration));
+                    item.AddTween(item.transform.DORotate(rotationAnglesForThisCard, settings.cardFitDuration));
                 }
 
                 howManyAdded++;
