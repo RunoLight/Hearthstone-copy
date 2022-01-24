@@ -18,6 +18,7 @@ namespace GamePlay
     {
         // True if hovered, false otherwise
         public event Action<bool, PlayingCard> OnHover;
+        public event Action OnDestroy;
     
         [SerializeField] private TMP_Text textTitle;
         [SerializeField] private TMP_Text textDescription;
@@ -43,6 +44,8 @@ namespace GamePlay
 
         public CardSettings settings;
 
+        #region Tweens
+
         public void AddTween(Tween tweenToAdd)
         {
             tweenSequence.Add(tweenToAdd);    
@@ -56,6 +59,8 @@ namespace GamePlay
             }
             tweenSequence.Clear();
         }
+
+        #endregion
 
         #region Properties
 
@@ -81,7 +86,7 @@ namespace GamePlay
             {
                 Debug.Log("Killing card");
                 KillTweens();
-                DeckHand.I.DeleteCard(this);
+                OnDestroy?.Invoke();
                 Destroy(gameObject);
                 return;
             }
@@ -134,9 +139,7 @@ namespace GamePlay
     
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (DeckHand.I.SomeCardSelected && DeckHand.I.selectedCard != this)
-                return;
-            if (!availableToSelect)
+            if (DeckHand.I.selectedCard != this || !availableToSelect)
                 return;
             OnHover?.Invoke(true, this);
             Glow(true);

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Configs;
 using DG.Tweening;
+using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -42,6 +43,7 @@ namespace GamePlay
         [SerializeField] private Button btn;
         [SerializeField] private GraphicRaycaster graphicRaycaster;
         [SerializeField] private DeckSettings settings;
+        [SerializeField] private TMP_Text gameEndText;
     
         /// <summary> Cards currently in hand</summary>
         private readonly List<PlayingCard> cards = new List<PlayingCard>();
@@ -112,6 +114,8 @@ namespace GamePlay
                     }
                 }
             }
+            
+            gameEndText.gameObject.SetActive(true);
             Debug.Log("Game completed!");
 
             async Task GenerateNewHealth(PlayingCard c)
@@ -254,6 +258,10 @@ namespace GamePlay
                         c.transform.SetSiblingIndex(cards.FindIndex(pc => pc == c));
                         c.transform.DOScale(settings.scaleBack, settings.scaleBackDuration);
                     }
+                };
+                newCard.OnDestroy += () =>
+                {
+                    DeleteCard(newCard);
                 };
                 cards.Add(newCard);
             }
