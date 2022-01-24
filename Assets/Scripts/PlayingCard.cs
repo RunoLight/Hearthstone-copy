@@ -12,23 +12,34 @@ using static UnityEngine.Networking.UnityWebRequest.Result;
 
 public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
+    // Mouse enter when true, exit when false
+    public event Action<bool, PlayingCard> OnMouse;
+    
+    [SerializeField] private TMP_Text textTitle;
+    [SerializeField] private TMP_Text textDescription;
+    [SerializeField] private TMP_Text textHealth;
+    [SerializeField] private TMP_Text textDamage;
+    [SerializeField] private TMP_Text textManaCost;
+    [SerializeField] private Image imageAvatar;
+    
     [SerializeField] private Image cardImage;
     [SerializeField] private Material outlineMaterial;
     private Material materialInstance;
-    private static readonly int Thickness = Shader.PropertyToID("_Thickness");
 
+    private CancellationTokenSource glowTaskCancelSource;
+    private Task glowTask;
+    
+    private static readonly float MaxThickness = 1.3f;
+    private static readonly float MinThickness = 0f;
+    private static readonly float ThicknessStep = 0.06f;
+    private static readonly int Thickness = Shader.PropertyToID("_Thickness");
+    
     private void Awake()
     {
         cardImage.material = null;
         materialInstance = Instantiate(outlineMaterial);
         materialInstance.SetFloat(Thickness, 0f);
     }
-
-    // Mouse enter when true, exit when false
-    public event Action<bool, PlayingCard> OnMouse;
-
-    private CancellationTokenSource glowTaskCancelSource;
-    private Task glowTask;
     
     public void OnPointerEnter(PointerEventData eventData)
     {
@@ -36,9 +47,7 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         {
             return;
         }
-        
         OnMouse?.Invoke(true, this);
-        
         glowTaskCancelSource?.Cancel();
         glowTaskCancelSource = new CancellationTokenSource();
         glowTask = GlowStart(glowTaskCancelSource.Token);
@@ -53,48 +62,6 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         glowTask = GlowEnd(glowTaskCancelSource.Token);
     }
 
-    private const float MAXThickness = 1.3f;
-    private const float MINThickness = 0f;
-    private const float ThicknessStep = 0.06f;
-    
-    public async Task GlowStart(CancellationToken t)
-    {
-        cardImage.material = materialInstance;
-        
-        var mat = cardImage.material;
-        var newThickness = mat.GetFloat(Thickness);
-        while (newThickness < MAXThickness)
-        {
-            newThickness = Mathf.Clamp(newThickness + ThicknessStep, MINThickness, MAXThickness);
-            mat.SetFloat(Thickness, newThickness);
-            await Task.Yield();
-            if (t.IsCancellationRequested)
-            {
-                return;
-            }
-        }
-    }
-    
-    // Если отпустить карту на то чтобы она поехала сама и не двигать мышкой то не будет спадать glow
-    public async Task GlowEnd(CancellationToken t)
-    {
-        var mat = cardImage.material;
-        var newThickness = mat.GetFloat(Thickness);
-        while (newThickness > MINThickness)
-        {
-            newThickness = Mathf.Clamp(newThickness - ThicknessStep, MINThickness, MAXThickness);
-            mat.SetFloat(Thickness, newThickness);
-            await Task.Yield();
-            if (t.IsCancellationRequested)
-            {
-                return;
-            }
-        }
-        cardImage.material = null;
-    }
-    
- 
-    
     public async Task SetSomething(int amount)
     {
         var currentSomething = Convert.ToInt32(textDamage.text);
@@ -109,14 +76,15 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         }
         var timePerOneDelta = totalTime / totalDelta;
         
-        var delta = 0;
+        int delta;
+
         do
         {
             await Task.Delay(TimeSpan.FromSeconds(timePerOneDelta));
 
             delta = currentSomething > amount ? -1 :
-                currentSomething < amount ? 1 :
-                0;
+                    currentSomething < amount ?  1 :
+                                                 0;
 
             currentSomething += delta;
             textDamage.text = currentSomething.ToString();
@@ -132,12 +100,6 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         return Convert.ToInt32(textDamage.text);
     }
 
-    [SerializeField] private TMP_Text textTitle;
-    [SerializeField] private TMP_Text textDescription;
-    [SerializeField] private TMP_Text textHealth;
-    [SerializeField] private TMP_Text textDamage;
-    [SerializeField] private TMP_Text textManaCost;
-    [SerializeField] private Image imageAvatar;
 
     private void Setup(string title, string description, int health, int damage, int manaCost, Sprite avatar)
     {
@@ -149,7 +111,6 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         imageAvatar.sprite = avatar;
     }
 
-    // Start is called before the first frame update
     IEnumerator Start()
     {
         Sprite sprite = null;
@@ -168,4 +129,44 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
         Setup("Kronx Dragongoof", "Description", 2, 3, 4, sprite);
     }
+
+    #region GlowEffect
+
+    private async Task GlowStart(CancellationToken t)
+    {
+        cardImage.material = materialInstance;
+        
+        var mat = cardImage.material;
+        var newThickness = mat.GetFloat(Thickness);
+        while (newThickness < MaxThickness)
+        {
+            newThickness = Mathf.Clamp(newThickness + ThicknessStep, MinThickness, MaxThickness);
+            mat.SetFloat(Thickness, newThickness);
+            await Task.Yield();
+            if (t.IsCancellationRequested)
+            {
+                return;
+            }
+        }
+    }
+    
+    // TODO: Если отпустить карту на то чтобы она поехала сама и не двигать мышкой то не будет спадать glow
+    private async Task GlowEnd(CancellationToken t)
+    {
+        var mat = cardImage.material;
+        var newThickness = mat.GetFloat(Thickness);
+        while (newThickness > MinThickness)
+        {
+            newThickness = Mathf.Clamp(newThickness - ThicknessStep, MinThickness, MaxThickness);
+            mat.SetFloat(Thickness, newThickness);
+            await Task.Yield();
+            if (t.IsCancellationRequested)
+            {
+                return;
+            }
+        }
+        cardImage.material = null;
+    }
+
+    #endregion
 }
