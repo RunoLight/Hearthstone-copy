@@ -75,6 +75,7 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         }
     }
     
+    // Если отпустить карту на то чтобы она поехала сама и не двигать мышкой то не будет спадать glow
     public async Task GlowEnd(CancellationToken t)
     {
         var mat = cardImage.material;

@@ -1,19 +1,15 @@
-using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using DG.Tweening;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
-using Random = UnityEngine.Random;
 
 public class DeckHand : MonoBehaviour
 {
     public static DeckHand I;
-    
+
     public PlayingCard cardPrefab;
 
     public int minimalCardAmount;
@@ -24,8 +20,6 @@ public class DeckHand : MonoBehaviour
     public Transform selectedCardParent;
 
     [SerializeField] private GraphicRaycaster graphicRaycaster;
-    private readonly PointerEventData clickData = new PointerEventData(EventSystem.current);
-    private readonly List<RaycastResult> clickResult = new List<RaycastResult>();
 
     [HideInInspector] public int howManyAdded;
     public float gapFromOneItemToTheNextOne;
@@ -37,9 +31,33 @@ public class DeckHand : MonoBehaviour
 
     public Button btn;
 
-    public PlayingCard selectedCard = null;
+    public PlayingCard selectedCard;
 
-    public bool someCardGrabbed = false;
+    public bool someCardGrabbed;
+    private readonly PointerEventData clickData = new PointerEventData(EventSystem.current);
+    private readonly List<RaycastResult> clickResult = new List<RaycastResult>();
+
+    private void Start()
+    {
+        I = this;
+
+        SpawnCards();
+        FitCards();
+        btn.onClick.AddListener(async () =>
+        {
+            btn.interactable = false;
+            foreach (var card in cards)
+            {
+                var oldAmount = card.GetSomething();
+                var newAmount = oldAmount;
+                while (oldAmount == newAmount) newAmount = Random.Range(-2, 9);
+
+                await card.SetSomething(newAmount);
+            }
+
+            btn.interactable = true;
+        });
+    }
 
     private void Update()
     {
@@ -52,7 +70,7 @@ public class DeckHand : MonoBehaviour
 
             if (clickResult.Count != 0)
             {
-                GameObject ui_element = clickResult[0].gameObject;
+                var ui_element = clickResult[0].gameObject;
                 var cardComponent = ui_element.GetComponentInParent<PlayingCard>();
                 if (cardComponent != null)
                 {
@@ -84,40 +102,13 @@ public class DeckHand : MonoBehaviour
         }
     }
 
-    private void Start()
-    {
-        I = this;
-        
-        SpawnCards();
-        FitCards();
-        btn.onClick.AddListener(async () =>
-        {
-            btn.interactable = false;
-            foreach (PlayingCard card in cards)
-            {
-                var oldAmount = card.GetSomething();
-                int newAmount = oldAmount;
-                while (oldAmount == newAmount)
-                {
-                    newAmount = Random.Range(-2, 9);
-                }
-
-                await card.SetSomething(newAmount);
-            }
-
-            btn.interactable = true;
-        });
-    }
 
     public void SpawnCards()
     {
         var cardsAmount = Random.Range(minimalCardAmount, maximalCardAmount);
-        for (int i = 0; i < cardsAmount; i++)
-        {
-            cards.Add(Instantiate(cardPrefab, cardsParent));
-        }
+        for (var i = 0; i < cardsAmount; i++) cards.Add(Instantiate(cardPrefab, cardsParent));
 
-        foreach (PlayingCard card in cards)
+        foreach (var card in cards)
         {
             Debug.Log(card.name);
             card.OnMouse += (isSelected, c) =>
@@ -154,53 +145,43 @@ public class DeckHand : MonoBehaviour
             idx++;
 
             var tr = item.transform;
-            Vector3 position = Vector3.zero;
+            var position = handDeckCenter.position;
 
-            int halfCards = cards.Count / 2;
+            var halfCards = cards.Count / 2;
             if (cards.Count % 2 == 0)
             {
                 if (idx == halfCards)
                 {
-                    position = handDeckCenter.position - new Vector3(0.5f * gapFromOneItemToTheNextOne, 0, 0);
+                    position.x += 0.5f * gapFromOneItemToTheNextOne;
                 }
                 else if (idx == halfCards - 1)
                 {
-                    position = handDeckCenter.position + new Vector3(0.5f * gapFromOneItemToTheNextOne, 0, 0);
+                    position.x -= 0.5f * gapFromOneItemToTheNextOne;
                 }
                 else if (idx < halfCards - 1)
                 {
-                    position = handDeckCenter.position - new Vector3(0.5f * gapFromOneItemToTheNextOne, 0, 0);
                     var deltaFromCenter = Mathf.Abs(idx - (halfCards - 1));
-                    position -= new Vector3(deltaFromCenter * gapFromOneItemToTheNextOne, 0, 0);
+
+                    position.x -= 0.5f * gapFromOneItemToTheNextOne;
+                    position.x -= deltaFromCenter * gapFromOneItemToTheNextOne;
                 }
                 else if (idx > halfCards)
                 {
-                    position = handDeckCenter.position + new Vector3(0.5f * gapFromOneItemToTheNextOne, 0, 0);
-                    var deltaFromCenter = Mathf.Abs(idx - (halfCards));
-                    position += new Vector3(deltaFromCenter * gapFromOneItemToTheNextOne, 0, 0);
+                    var deltaFromCenter = Mathf.Abs(idx - halfCards);
+                    position.x += 0.5f * gapFromOneItemToTheNextOne;
+                    position.x += deltaFromCenter * gapFromOneItemToTheNextOne;
                 }
             }
             else
             {
+                var deltaFromCenter = Mathf.Abs(idx - halfCards);
+                var amountToMove = deltaFromCenter * gapFromOneItemToTheNextOne;
                 if (idx < halfCards)
-                {
-                    position = handDeckCenter.position;
-                    var deltaFromCenter = Mathf.Abs(idx - (halfCards));
-                    position -= new Vector3(deltaFromCenter * gapFromOneItemToTheNextOne, 0, 0);
-                }
+                    position.x -= amountToMove;
                 else if (idx > halfCards)
-                {
-                    position = handDeckCenter.position;
-                    var deltaFromCenter = Mathf.Abs(idx - (halfCards));
-                    position += new Vector3(deltaFromCenter * gapFromOneItemToTheNextOne, 0, 0);
-                }
-                else if (idx == halfCards)
-                {
-                    position = handDeckCenter.position;
-                }
+                    position.x += amountToMove;
             }
 
-            // position = start.position + new Vector3(howManyAdded * gapFromOneItemToTheNextOne, 0, 0);
             tr.position = position;
             tr.SetParent(cardsParent);
 
@@ -223,14 +204,11 @@ public class DeckHand : MonoBehaviour
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
-        // start
         Handles.color = Color.yellow;
         Handles.DrawWireDisc(handDeckCenter.transform.position, Vector3.forward, 0.1f);
         Handles.color = Color.green;
         foreach (var item in cards)
-        {
             Handles.DrawWireDisc(item.transform.position, Vector3.forward, 0.1f);
-        }
     }
 #endif
 }
