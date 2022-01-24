@@ -31,6 +31,7 @@ public class DeckHand : MonoBehaviour
 
     public Button btn;
 
+    private int indexOfSelectedCard;
     public PlayingCard selectedCard;
 
     public bool someCardGrabbed;
@@ -77,6 +78,10 @@ public class DeckHand : MonoBehaviour
                 selectedCard.transform.SetParent(selectedCardParent);
                 selectedCard.SetRaycastTarget(false);
                 someCardGrabbed = true;
+
+                indexOfSelectedCard = cards.IndexOf(selectedCard);
+                cards.Remove(selectedCard);
+                FitCards();
             }
         }
         else if (Mouse.current.leftButton.isPressed)
@@ -100,7 +105,7 @@ public class DeckHand : MonoBehaviour
             if (clickResult.Count == 0) return;
 
             PlayAreaController playAreaController = null;
-            foreach (RaycastResult result in clickResult)
+            foreach (var result in clickResult)
             {
                 if (result.gameObject.TryGetComponent(out playAreaController))
                 {
@@ -111,13 +116,13 @@ public class DeckHand : MonoBehaviour
             if (playAreaController != null)
             {
                 playAreaController.AttachCard(selectedCard);
-                // selectedCard.transform.DOMove(playAreaController.transform.position, 1f);
-
             }
             else
             {
-                selectedCard.transform.DOMove(handDeckCenter.position, 1f);
+                cards.Insert(indexOfSelectedCard, selectedCard);
+                indexOfSelectedCard = 0;
                 selectedCard.SetRaycastTarget(true);
+                FitCards();
             }
             
             selectedCard = null;
@@ -209,7 +214,7 @@ public class DeckHand : MonoBehaviour
 
             var twistForThisCard = startTwist - howManyAdded * twistPerCard;
 
-            item.transform.Rotate(0f, 0f, twistForThisCard);
+            item.transform.eulerAngles = new Vector3(0, 0, twistForThisCard);
 
             var nudgeThisCard = Mathf.Abs(twistForThisCard);
             nudgeThisCard *= scalingFactor;
