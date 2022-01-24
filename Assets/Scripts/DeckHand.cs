@@ -6,6 +6,20 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
+[System.Serializable]
+public struct MapBorders
+{
+    [SerializeField] private Transform top;
+    [SerializeField] private Transform bottom;
+    [SerializeField] private Transform left;
+    [SerializeField] private Transform right;
+
+    public float MinX => left.transform.position.x;
+    public float MaxX => right.transform.position.x;
+    public float MinY => bottom.transform.position.y;
+    public float MaxY => top.transform.position.y;
+}
+
 public class DeckHand : MonoBehaviour
 {
     public static DeckHand I;
@@ -15,6 +29,8 @@ public class DeckHand : MonoBehaviour
     public int minimalCardAmount;
     public int maximalCardAmount;
 
+    public MapBorders borders;
+    
     public Transform handDeckCenter;
     public Transform cardsParent;
     public Transform selectedCardParent;
@@ -81,6 +97,8 @@ public class DeckHand : MonoBehaviour
 
                 indexOfSelectedCard = cards.IndexOf(selectedCard);
                 cards.Remove(selectedCard);
+                selectedCard.transform.DORotate(Vector3.zero, 1f);
+
                 FitCards();
             }
         }
@@ -91,6 +109,8 @@ public class DeckHand : MonoBehaviour
             {
                 var cardPosition = Camera.main.ScreenToWorldPoint(mousePosition);
                 cardPosition.z = 0;
+                cardPosition.x = Mathf.Clamp(cardPosition.x, borders.MinX, borders.MaxX);
+                cardPosition.y = Mathf.Clamp(cardPosition.y, borders.MinY, borders.MaxY);
                 selectedCard.transform.position = cardPosition;
             }
         }
