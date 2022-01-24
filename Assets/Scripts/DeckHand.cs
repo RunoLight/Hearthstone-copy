@@ -101,11 +101,11 @@ public class DeckHand : MonoBehaviour
     {
         // start
         Handles.color = Color.yellow;
-        Handles.DrawWireDisc(start.transform.position, Vector3.forward, 20f);
+        Handles.DrawWireDisc(start.transform.position, Vector3.forward, 2f);
         Handles.color = Color.green;
         foreach (var item in cards)
         {
-            Handles.DrawWireDisc(item.transform.position, Vector3.forward, 20f);
+            Handles.DrawWireDisc(item.transform.position, Vector3.forward, 2f);
         }
     }
 #endif
