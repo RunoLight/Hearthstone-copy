@@ -6,26 +6,29 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 public class DeckHand : MonoBehaviour
 {
+    public static DeckHand I;
+    
     public PlayingCard cardPrefab;
 
     public int minimalCardAmount;
     public int maximalCardAmount;
-    
-    public Transform start; //Location where to start adding my cards
-    public Transform cardsParent; //The hand panel reference
-    public Transform selectedCardParent; //The hand panel reference
+
+    public Transform handDeckCenter;
+    public Transform cardsParent;
+    public Transform selectedCardParent;
 
     [SerializeField] private GraphicRaycaster graphicRaycaster;
-    private PointerEventData clickData = new PointerEventData(EventSystem.current);
-    private List<RaycastResult> clickResult = new List<RaycastResult>();
-    
+    private readonly PointerEventData clickData = new PointerEventData(EventSystem.current);
+    private readonly List<RaycastResult> clickResult = new List<RaycastResult>();
+
     [HideInInspector] public int howManyAdded;
-    public float gapFromOneItemToTheNextOne; //the gap I need between each card
+    public float gapFromOneItemToTheNextOne;
 
     public List<PlayingCard> cards;
 
@@ -34,15 +37,17 @@ public class DeckHand : MonoBehaviour
 
     public Button btn;
 
-    private PlayingCard selectedCard = null;
-    
+    public PlayingCard selectedCard = null;
+
+    public bool someCardGrabbed = false;
+
     private void Update()
     {
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
             clickData.position = Mouse.current.position.ReadValue();
             clickResult.Clear();
-            
+
             graphicRaycaster.Raycast(clickData, clickResult);
 
             if (clickResult.Count != 0)
@@ -54,6 +59,7 @@ public class DeckHand : MonoBehaviour
                     selectedCard = cardComponent;
                     Debug.Log($"Selected card {cardComponent.name}");
                     selectedCard.transform.SetParent(selectedCardParent);
+                    someCardGrabbed = true;
                 }
             }
         }
@@ -73,12 +79,15 @@ public class DeckHand : MonoBehaviour
             {
                 selectedCard.transform.DOMove(Vector3.one, 1f);
                 selectedCard = null;
+                someCardGrabbed = false;
             }
         }
     }
 
     private void Start()
     {
+        I = this;
+        
         SpawnCards();
         FitCards();
         btn.onClick.AddListener(async () =>
@@ -90,11 +99,12 @@ public class DeckHand : MonoBehaviour
                 int newAmount = oldAmount;
                 while (oldAmount == newAmount)
                 {
-                    newAmount= Random.Range(-2, 9);
+                    newAmount = Random.Range(-2, 9);
                 }
-                
+
                 await card.SetSomething(newAmount);
             }
+
             btn.interactable = true;
         });
     }
@@ -127,27 +137,22 @@ public class DeckHand : MonoBehaviour
         }
     }
 
-    public void FitCards()
+    private void FitCards()
     {
         if (cards.Count == 0) return;
 
         howManyAdded = 0;
-        // 20f for example, try various values
         var numberOfCards = cards.Count;
         var twistPerCard = totalTwist / numberOfCards;
-        var startTwist = numberOfCards % 2 == 0 ? totalTwist / 2f - twistPerCard / 2 : Mathf.Floor(numberOfCards / 2f) * twistPerCard;
-        // var startTwist = ;
-        // var startTwist = Mathf.Floor(numberOfCards / 2f) * twistPerCard; // % 2 == 1
-        // var startTwist = (numberOfCards / 2f - 1)* twistPerCard; // % 2 == 0
-
-        // that should be roughly one-tenth the height of one
-        // of your cards, just experiment until it works well
+        var startTwist = numberOfCards % 2 == 0
+            ? totalTwist / 2f - twistPerCard / 2
+            : Mathf.Floor(numberOfCards / 2f) * twistPerCard;
 
         var idx = -1;
         foreach (var item in cards)
         {
             idx++;
-            
+
             var tr = item.transform;
             Vector3 position = Vector3.zero;
 
@@ -156,21 +161,21 @@ public class DeckHand : MonoBehaviour
             {
                 if (idx == halfCards)
                 {
-                    position = start.position - new Vector3(0.5f * gapFromOneItemToTheNextOne, 0, 0);
+                    position = handDeckCenter.position - new Vector3(0.5f * gapFromOneItemToTheNextOne, 0, 0);
                 }
                 else if (idx == halfCards - 1)
                 {
-                    position = start.position + new Vector3(0.5f * gapFromOneItemToTheNextOne, 0, 0);
+                    position = handDeckCenter.position + new Vector3(0.5f * gapFromOneItemToTheNextOne, 0, 0);
                 }
                 else if (idx < halfCards - 1)
                 {
-                    position = start.position - new Vector3(0.5f * gapFromOneItemToTheNextOne, 0, 0);
+                    position = handDeckCenter.position - new Vector3(0.5f * gapFromOneItemToTheNextOne, 0, 0);
                     var deltaFromCenter = Mathf.Abs(idx - (halfCards - 1));
                     position -= new Vector3(deltaFromCenter * gapFromOneItemToTheNextOne, 0, 0);
                 }
                 else if (idx > halfCards)
                 {
-                    position = start.position + new Vector3(0.5f * gapFromOneItemToTheNextOne, 0, 0);
+                    position = handDeckCenter.position + new Vector3(0.5f * gapFromOneItemToTheNextOne, 0, 0);
                     var deltaFromCenter = Mathf.Abs(idx - (halfCards));
                     position += new Vector3(deltaFromCenter * gapFromOneItemToTheNextOne, 0, 0);
                 }
@@ -179,25 +184,22 @@ public class DeckHand : MonoBehaviour
             {
                 if (idx < halfCards)
                 {
-                    position = start.position;
+                    position = handDeckCenter.position;
                     var deltaFromCenter = Mathf.Abs(idx - (halfCards));
                     position -= new Vector3(deltaFromCenter * gapFromOneItemToTheNextOne, 0, 0);
                 }
                 else if (idx > halfCards)
                 {
-                    position = start.position;
+                    position = handDeckCenter.position;
                     var deltaFromCenter = Mathf.Abs(idx - (halfCards));
                     position += new Vector3(deltaFromCenter * gapFromOneItemToTheNextOne, 0, 0);
                 }
                 else if (idx == halfCards)
                 {
-                    position = start.position;
-
-                    
-
+                    position = handDeckCenter.position;
                 }
             }
-            
+
             // position = start.position + new Vector3(howManyAdded * gapFromOneItemToTheNextOne, 0, 0);
             tr.position = position;
             tr.SetParent(cardsParent);
@@ -217,13 +219,13 @@ public class DeckHand : MonoBehaviour
             howManyAdded++;
         }
     }
-    
-    #if UNITY_EDITOR
+
+#if UNITY_EDITOR
     private void OnDrawGizmos()
     {
         // start
         Handles.color = Color.yellow;
-        Handles.DrawWireDisc(start.transform.position, Vector3.forward, 0.1f);
+        Handles.DrawWireDisc(handDeckCenter.transform.position, Vector3.forward, 0.1f);
         Handles.color = Color.green;
         foreach (var item in cards)
         {

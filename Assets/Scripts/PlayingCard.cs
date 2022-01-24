@@ -32,9 +32,13 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     
     public void OnPointerEnter(PointerEventData eventData)
     {
+        if (DeckHand.I.someCardGrabbed && DeckHand.I.selectedCard != this)
+        {
+            return;
+        }
+        
         OnMouse?.Invoke(true, this);
-
-
+        
         glowTaskCancelSource?.Cancel();
         glowTaskCancelSource = new CancellationTokenSource();
         glowTask = GlowStart(glowTaskCancelSource.Token);

@@ -384,7 +384,7 @@ RectTransform:
   - {fileID: 1931694719}
   - {fileID: 940509708}
   m_Father: {fileID: 1987117932}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
@@ -504,9 +504,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardPrefab: {fileID: 3314156715523707926, guid: 84504e6117fcb4a45a9fbe9e4aad8b71, type: 3}
-  minimalCardAmount: 5
-  maximalCardAmount: 5
-  start: {fileID: 106918799}
+  minimalCardAmount: 4
+  maximalCardAmount: 6
+  handDeckCenter: {fileID: 106918799}
   cardsParent: {fileID: 1931694719}
   selectedCardParent: {fileID: 940509708}
   graphicRaycaster: {fileID: 1987117929}
@@ -516,6 +516,8 @@ MonoBehaviour:
   totalTwist: 20
   scalingFactor: 0.015
   btn: {fileID: 1309484534}
+  selectedCard: {fileID: 0}
+  someCardGrabbed: 0
 --- !u!4 &1084778457
 Transform:
   m_ObjectHideFlags: 0
@@ -562,7 +564,7 @@ RectTransform:
   m_Children:
   - {fileID: 2074269978}
   m_Father: {fileID: 1987117932}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.7722565, y: 0.5059107}
   m_AnchorMax: {x: 0.8587852, y: 0.57538563}
@@ -868,8 +870,8 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_Children:
   - {fileID: 1407307538}
-  - {fileID: 666441835}
   - {fileID: 1309484533}
+  - {fileID: 666441835}
   m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
