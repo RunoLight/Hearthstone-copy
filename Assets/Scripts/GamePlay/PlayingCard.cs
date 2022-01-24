@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Configs;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -11,7 +12,7 @@ using UnityEngine.Networking;
 using UnityEngine.UI;
 using static UnityEngine.Networking.UnityWebRequest.Result;
 
-public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     // Mouse enter when true, exit when false
     public event Action<bool, PlayingCard> OnMouse;
@@ -38,22 +39,8 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     /// </summary>
     private readonly List<Tween> tweenSequence = new List<Tween>();
 
-    private static readonly float MaxThickness = 1.3f;
-    private static readonly float MinThickness = 0f;
-    private static readonly float ThicknessStep = 0.06f;
-    private static readonly int Thickness = Shader.PropertyToID("_Thickness");
+    public CardSettings settings;
 
-    private static readonly Vector3 PropertySelectedScale = new Vector3(1.4f, 1.4f, 1f);
-    private static readonly float PropertySelectionDuration = 0.3f;
-    
-    private static readonly Vector3 PropertyUnselectedScale = Vector3.one;
-    private static readonly float PropertyUnselectDuration = 0.3f;
-    
-    private static readonly float PropertyEndedAdditionalWaitDuration = 0.2f;
-    private static readonly float PropertyChangingTotalDuration = 1f;
-    private static readonly float PropertyChangingTotalDurationShort = 0.2f;
-    private static readonly int MaximumDeltaForShortDuration = 3;
-    
     public void AddTween(Tween tweenToAdd)
     {
         tweenSequence.Add(tweenToAdd);    
@@ -100,10 +87,11 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
         private void Awake()
         {
+            settings = GameConfigs.I.CardSettings;
             canvasGroup = GetComponent<CanvasGroup>();
             cardImage.material = null;
             materialInstance = Instantiate(outlineMaterial);
-            materialInstance.SetFloat(Thickness, MinThickness);
+            materialInstance.SetFloat(settings.Thickness, settings.MinThickness);
         }
         
         IEnumerator Start()
@@ -181,7 +169,7 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         textManaCost.text = manaCost.ToString();
     }
 
-    private static async Task SetParameterSmoothly(int from, int to, TMP_Text textField)
+    private async Task SetParameterSmoothly(int from, int to, TMP_Text textField)
     {
         if (from == to) return;
         
@@ -189,12 +177,12 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         float timePerOneDelta;
         int delta;
         
-        await textField.transform.DOScale(PropertySelectedScale,PropertySelectionDuration);
+        await textField.transform.DOScale(settings.PropertySelectedScale,settings.PropertySelectionDuration);
         var totalDelta = Mathf.Abs(from - to);
-        if (totalDelta < MaximumDeltaForShortDuration)
-            timePerOneDelta = PropertyChangingTotalDurationShort / totalDelta;
+        if (totalDelta < settings.MaximumDeltaForShortDuration)
+            timePerOneDelta = settings.PropertyChangingTotalDurationShort / totalDelta;
         else
-            timePerOneDelta = PropertyChangingTotalDuration / totalDelta;
+            timePerOneDelta = settings.PropertyChangingTotalDuration / totalDelta;
         do
         {
             await Task.Delay(TimeSpan.FromSeconds(timePerOneDelta));
@@ -207,8 +195,8 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
             
         } while (delta != 0);
         
-        await textField.transform.DOScale(PropertyUnselectedScale, PropertyUnselectDuration);
-        await Task.Delay(TimeSpan.FromSeconds(PropertyEndedAdditionalWaitDuration));
+        await textField.transform.DOScale(settings.PropertyUnselectedScale, settings.PropertyUnselectDuration);
+        await Task.Delay(TimeSpan.FromSeconds(settings.PropertyEndedAdditionalWaitDuration));
     }
 
     public void SetRaycastTarget(bool isActive)
@@ -224,11 +212,11 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         cardImage.material = materialInstance;
         
         var mat = cardImage.material;
-        var newThickness = mat.GetFloat(Thickness);
-        while (newThickness < MaxThickness)
+        var newThickness = mat.GetFloat(settings.Thickness);
+        while (newThickness < settings.MaxThickness)
         {
-            newThickness = Mathf.Clamp(newThickness + ThicknessStep, MinThickness, MaxThickness);
-            mat.SetFloat(Thickness, newThickness);
+            newThickness = Mathf.Clamp(newThickness + settings.ThicknessStep, settings.MinThickness, settings.MaxThickness);
+            mat.SetFloat(settings.Thickness, newThickness);
             await Task.Yield();
             if (t.IsCancellationRequested)
             {
@@ -242,11 +230,11 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     {
         var mat = cardImage.material;
      if (mat.name == "Default UI Material") return;
-        var newThickness = mat.GetFloat(Thickness);
-        while (newThickness > MinThickness)
+        var newThickness = mat.GetFloat(settings.Thickness);
+        while (newThickness > settings.MinThickness)
         {
-            newThickness = Mathf.Clamp(newThickness - ThicknessStep, MinThickness, MaxThickness);
-            mat.SetFloat(Thickness, newThickness);
+            newThickness = Mathf.Clamp(newThickness - settings.ThicknessStep,settings. MinThickness, settings.MaxThickness);
+            mat.SetFloat(settings.Thickness, newThickness);
             await Task.Yield();
             if (t.IsCancellationRequested)
             {
@@ -257,16 +245,4 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     }
 
     #endregion
-
-    public void OnBeginDrag(PointerEventData eventData)
-    {
-    }
-
-    public void OnDrag(PointerEventData eventData)
-    {
-    }
-
-    public void OnEndDrag(PointerEventData eventData)
-    {
-    }
 }
