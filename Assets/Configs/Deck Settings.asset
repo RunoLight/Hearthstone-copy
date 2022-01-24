@@ -12,3 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10ab328992654c18a6b239df2724b240, type: 3}
   m_Name: Deck Settings
   m_EditorClassIdentifier: 
+  minimalCardAmount: 4
+  maximalCardAmount: 6
+  cardPrefab: {fileID: 3314156715523707926, guid: 84504e6117fcb4a45a9fbe9e4aad8b71, type: 3}
+  gapFromOneItemToTheNextOne: 1
+  totalTwist: 20
+  scalingFactor: 0.01
+  scaleCardWhenSelected: {x: 1.2, y: 1.2, z: 1}
+  scaleCardDuration: 0.2
+  scaleBack: {x: 1, y: 1, z: 1}
+  scaleBackDuration: 0.2
+  minimalValue: -2
+  maximalValue: 9
+  cardFitDuration: 0.3

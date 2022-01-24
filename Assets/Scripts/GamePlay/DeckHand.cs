@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Configs;
 using DG.Tweening;
 using UnityEditor;
@@ -28,7 +29,7 @@ namespace GamePlay
     public class DeckHand : MonoBehaviour
     {
         public static DeckHand I;
-        public bool SomeCardGrabbed => selectedCard != null;
+        public bool SomeCardSelected => selectedCard != null;
         public PlayingCard selectedCard;
         
         [SerializeField] private MapBorders borders;
@@ -64,20 +65,70 @@ namespace GamePlay
         private async void ButtonCallback()
         {
             btn.interactable = false;
+
+            HashSet<PlayingCard> used = new HashSet<PlayingCard>();
+            PlayingCard card = null;
+            
             while (cards.Count != 0)
             {
-                foreach (var card in cards)
+                used.Clear();
+                do
                 {
-                    var oldAmount = card.Health;
-                    var newAmount = oldAmount;
-                    while (oldAmount == newAmount) 
-                        newAmount = Random.Range(settings.minimalValue, settings.maximalValue);
-                    await card.SetHealth(newAmount);
-                }
+                    card = cards.FirstOrDefault(c => used.Contains(c) == false);
+                    if (card != null)
+                    {
+                        used.Add(card);
+                        
+                        SelectCard(card);
+                        var oldAmount = card.Health;
+                        var newAmount = oldAmount;
+                        while (oldAmount == newAmount) 
+                            newAmount = Random.Range(settings.minimalValue, settings.maximalValue);
+                    
+                        await card.SetHealth(newAmount);
+                    }
+                } while (card != null);
             }
             Debug.Log("Game completed!");
         }
 
+        private void SelectCard(PlayingCard card)
+        {
+            if (SomeCardSelected)
+            {
+                MoveCardToHand(selectedCard, indexOfSelectedCard);
+            }
+            
+            selectedCard = card;
+            
+            Debug.Log($"Selected card {card.name}");
+            selectedCard.transform.SetParent(selectedCardParent);
+            selectedCard.SetRaycastTarget(false);
+
+            indexOfSelectedCard = cards.IndexOf(selectedCard);
+            cards.Remove(selectedCard);
+
+            selectedCard.KillTweens();
+            selectedCard.AddTween(selectedCard.transform.DORotate(Vector3.zero, 0.2f));
+
+            FitCards(false);
+        }
+
+        private void MoveCardToHand(PlayingCard card, int index)
+        {
+            cards.Insert(index, card);
+            card.SetRaycastTarget(true);
+            card.transform.SetParent(cardsParent);
+            card.transform.SetSiblingIndex(index);
+            card.transform.DOScale(settings.scaleBack, settings.scaleBackDuration);
+            
+            card.transform.SetParent(cardsParent);
+            card.transform.SetSiblingIndex(cards.FindIndex(c => c == card));
+            card.transform.DOScale(settings.scaleBack, settings.scaleBackDuration);
+            
+            FitCards(false);
+        }
+        
         private void Update()
         {
             if (Mouse.current.leftButton.wasPressedThisFrame)
@@ -91,18 +142,7 @@ namespace GamePlay
                 var cardComponent = clickResult[0].gameObject.GetComponentInParent<PlayingCard>();
                 if (cardComponent != null)
                 {
-                    selectedCard = cardComponent;
-                    Debug.Log($"Selected card {cardComponent.name}");
-                    selectedCard.transform.SetParent(selectedCardParent);
-                    selectedCard.SetRaycastTarget(false);
-
-                    indexOfSelectedCard = cards.IndexOf(selectedCard);
-                    cards.Remove(selectedCard);
-
-                    selectedCard.KillTweens();
-                    selectedCard.AddTween(selectedCard.transform.DORotate(Vector3.zero, 1f));
-
-                    FitCards(false);
+                    SelectCard(cardComponent);
                 }
             }
             else if (Mouse.current.leftButton.isPressed)
@@ -142,12 +182,8 @@ namespace GamePlay
                 }
                 else
                 {
-                    cards.Insert(indexOfSelectedCard, selectedCard);
-                    indexOfSelectedCard = 0;
-                    selectedCard.SetRaycastTarget(true);
-                    FitCards(false);
+                    MoveCardToHand(selectedCard, indexOfSelectedCard);
                 }
-
                 selectedCard = null;
             }
         }
@@ -263,5 +299,9 @@ namespace GamePlay
                 Handles.DrawWireDisc(item.transform.position, Vector3.forward, 0.1f);
         }
 #endif
+        public void DeleteCard(PlayingCard card)
+        {
+            cards.Remove(card);
+        }
     }
 }
