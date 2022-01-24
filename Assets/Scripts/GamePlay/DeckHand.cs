@@ -45,10 +45,13 @@ namespace GamePlay
         private readonly PointerEventData clickData = new PointerEventData(EventSystem.current);
         private readonly List<RaycastResult> clickResult = new List<RaycastResult>();
 
+        private Camera Сamera;
+
         private void Awake()
         {
             I = this;
             settings = GameConfigs.I.DeckSettings;
+            Сamera = Camera.main;
         }
 
         private void Start()
@@ -107,7 +110,7 @@ namespace GamePlay
                 var mousePosition = Mouse.current.position.ReadValue();
                 if (selectedCard != null)
                 {
-                    var cardPosition = Camera.main.ScreenToWorldPoint(mousePosition);
+                    var cardPosition = Сamera.ScreenToWorldPoint(mousePosition);
                     cardPosition.z = 0;
                     cardPosition.x = Mathf.Clamp(cardPosition.x, borders.MinX, borders.MaxX);
                     cardPosition.y = Mathf.Clamp(cardPosition.y, borders.MinY, borders.MaxY);
@@ -149,7 +152,7 @@ namespace GamePlay
             }
         }
 
-        public void SpawnCards()
+        private void SpawnCards()
         {
             var cardsAmount = Random.Range(settings.minimalCardAmount, settings.maximalCardAmount);
             for (var i = 0; i < cardsAmount; i++) cards.Add(Instantiate(settings.cardPrefab, cardsParent));
