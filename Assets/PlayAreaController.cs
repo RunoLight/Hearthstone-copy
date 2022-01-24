@@ -17,11 +17,16 @@ public class PlayAreaController : MonoBehaviour
     public Transform cardsParent;
     public List<CardPosition> points = new List<CardPosition>();
 
-    private void RefreshCardPositions()
+    private void RefreshCardPositions(CardPosition newPoint)
     {
         foreach (CardPosition point in points)
         {
-            point.card.transform.DOMove(point.targetPosition.position, 1f);
+            point.card.KillTweens();
+            point.card.AddTween(point.card.transform.DOMove(point.targetPosition.position, 1f));
+            if (point.card == newPoint.card)
+            {
+                point.card.AddTween(point.card.transform.DORotate(Vector3.zero, 1f));
+            }
         }
     }
 
@@ -62,8 +67,6 @@ public class PlayAreaController : MonoBehaviour
         points.Insert(newIndex, cardPosition);
         
         LayoutRebuilder.ForceRebuildLayoutImmediate(pointsParent);
-        
-        playingCard.transform.DORotate(Vector3.zero, 1f);
-        RefreshCardPositions();
+        RefreshCardPositions(cardPosition);
     }
 }

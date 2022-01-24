@@ -30,7 +30,7 @@ public class DeckHand : MonoBehaviour
     public int maximalCardAmount;
 
     public MapBorders borders;
-    
+
     public Transform handDeckCenter;
     public Transform cardsParent;
     public Transform selectedCardParent;
@@ -59,7 +59,7 @@ public class DeckHand : MonoBehaviour
         I = this;
 
         SpawnCards();
-        FitCards();
+        FitCards(true);
         btn.onClick.AddListener(async () =>
         {
             btn.interactable = false;
@@ -85,7 +85,7 @@ public class DeckHand : MonoBehaviour
             graphicRaycaster.Raycast(clickData, clickResult);
 
             if (clickResult.Count == 0) return;
-            
+
             var cardComponent = clickResult[0].gameObject.GetComponentInParent<PlayingCard>();
             if (cardComponent != null)
             {
@@ -97,9 +97,11 @@ public class DeckHand : MonoBehaviour
 
                 indexOfSelectedCard = cards.IndexOf(selectedCard);
                 cards.Remove(selectedCard);
-                selectedCard.transform.DORotate(Vector3.zero, 1f);
 
-                FitCards();
+                selectedCard.KillTweens();
+                selectedCard.AddTween(selectedCard.transform.DORotate(Vector3.zero, 1f));
+
+                FitCards(false);
             }
         }
         else if (Mouse.current.leftButton.isPressed)
@@ -118,7 +120,7 @@ public class DeckHand : MonoBehaviour
         {
             if (selectedCard == null) return;
             selectedCard.Glow(false);
-                
+
             clickData.position = Mouse.current.position.ReadValue();
             clickResult.Clear();
             graphicRaycaster.Raycast(clickData, clickResult);
@@ -142,9 +144,9 @@ public class DeckHand : MonoBehaviour
                 cards.Insert(indexOfSelectedCard, selectedCard);
                 indexOfSelectedCard = 0;
                 selectedCard.SetRaycastTarget(true);
-                FitCards();
+                FitCards(false);
             }
-            
+
             selectedCard = null;
             someCardGrabbed = false;
         }
@@ -175,7 +177,7 @@ public class DeckHand : MonoBehaviour
         }
     }
 
-    private void FitCards()
+    private void FitCards(bool isInstant)
     {
         if (cards.Count == 0) return;
 
@@ -190,7 +192,6 @@ public class DeckHand : MonoBehaviour
         foreach (var item in cards)
         {
             idx++;
-
             var tr = item.transform;
             var position = handDeckCenter.position;
 
@@ -229,16 +230,24 @@ public class DeckHand : MonoBehaviour
                     position.x += amountToMove;
             }
 
-            tr.position = position;
             tr.SetParent(cardsParent);
 
             var twistForThisCard = startTwist - howManyAdded * twistPerCard;
+            var rotationAnglesForThisCard = new Vector3(0, 0, twistForThisCard);
+            var nudgeThisCard = Mathf.Abs(twistForThisCard) * scalingFactor;
+            position.y -= nudgeThisCard;
 
-            item.transform.eulerAngles = new Vector3(0, 0, twistForThisCard);
-
-            var nudgeThisCard = Mathf.Abs(twistForThisCard);
-            nudgeThisCard *= scalingFactor;
-            item.transform.Translate(0f, -nudgeThisCard, 0f);
+            if (isInstant)
+            {
+                tr.position = position;
+                item.transform.eulerAngles = rotationAnglesForThisCard;
+            }
+            else
+            {
+                item.KillTweens();
+                item.AddTween(tr.DOMove(position, 1.0f));
+                item.AddTween(item.transform.DORotate(rotationAnglesForThisCard, 1.0f));
+            }
 
             howManyAdded++;
         }

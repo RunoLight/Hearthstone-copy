@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using DG.Tweening;
@@ -30,6 +31,13 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     private Task glowUpTask;
     private Task glowDownTask;
     
+    private CanvasGroup canvasGroup;
+
+    /// <summary>
+    /// Tweens used to rotate or move card. Used to destroy current working tweens to add new ones
+    /// </summary>
+    private readonly List<Tween> tweenSequence = new List<Tween>();
+
     private static readonly float MaxThickness = 1.3f;
     private static readonly float MinThickness = 0f;
     private static readonly float ThicknessStep = 0.06f;
@@ -45,6 +53,20 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     private static readonly float PropertyChangingTotalDuration = 1f;
     private static readonly float PropertyChangingTotalDurationShort = 0.2f;
     private static readonly int MaximumDeltaForShortDuration = 3;
+    
+    public void AddTween(Tween tweenToAdd)
+    {
+        tweenSequence.Add(tweenToAdd);    
+    }
+    
+    public void KillTweens()
+    {
+        foreach (Tween tween in tweenSequence)
+        {
+            tween.Kill();
+        }
+        tweenSequence.Clear();
+    }
 
     #region Properties
 
@@ -189,7 +211,6 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         await Task.Delay(TimeSpan.FromSeconds(PropertyEndedAdditionalWaitDuration));
     }
 
-    private CanvasGroup canvasGroup;
     public void SetRaycastTarget(bool isActive)
     {
         canvasGroup.interactable = isActive;
