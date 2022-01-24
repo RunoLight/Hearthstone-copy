@@ -923,7 +923,7 @@ MonoBehaviour:
   btn: {fileID: 1026730507}
   graphicRaycaster: {fileID: 1987117929}
   settings: {fileID: 11400000, guid: bf92468082cd196489085d33d77645b0, type: 2}
-  gameEndText: {fileID: 0}
+  gameEndText: {fileID: 1168303197}
 --- !u!4 &1084778457
 Transform:
   m_ObjectHideFlags: 0

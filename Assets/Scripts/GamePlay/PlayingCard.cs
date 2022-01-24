@@ -139,7 +139,9 @@ namespace GamePlay
     
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (DeckHand.I.selectedCard != this || !availableToSelect)
+            if (DeckHand.I.SomeCardSelected && DeckHand.I.selectedCard != this)
+                return;
+            if (!availableToSelect)
                 return;
             OnHover?.Invoke(true, this);
             Glow(true);
