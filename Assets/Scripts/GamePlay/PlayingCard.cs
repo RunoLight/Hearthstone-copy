@@ -137,7 +137,7 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (DeckHand.I.someCardGrabbed && DeckHand.I.selectedCard != this)
+        if (DeckHand.I.SomeCardGrabbed && DeckHand.I.selectedCard != this)
         {
             return;
         }
