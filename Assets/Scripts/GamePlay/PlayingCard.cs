@@ -139,7 +139,7 @@ namespace GamePlay
     
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (DeckHand.I.SomeCardSelected && DeckHand.I.selectedCard != this)
+            if (DeckHand.SelectedCard != null && DeckHand.SelectedCard != this)
                 return;
             if (!availableToSelect)
                 return;
@@ -150,7 +150,7 @@ namespace GamePlay
         public void OnPointerExit(PointerEventData eventData)
         {
             OnHover?.Invoke(false, this);
-            if (DeckHand.I.selectedCard != this)
+            if (DeckHand.SelectedCard != this)
             {
                 Glow(false);
             }

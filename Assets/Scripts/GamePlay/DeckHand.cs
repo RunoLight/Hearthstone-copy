@@ -30,9 +30,7 @@ namespace GamePlay
 
     public class DeckHand : MonoBehaviour
     {
-        public static DeckHand I;
-        public bool SomeCardSelected => selectedCard != null;
-        public PlayingCard selectedCard;
+        public static PlayingCard SelectedCard;
         
         /// <summary> Used to restrict the area where card can be dragged </summary>
         [SerializeField] private MapBorders borders;
@@ -56,7 +54,6 @@ namespace GamePlay
 
         private void Awake()
         {
-            I = this;
             settings = GameConfigs.I.DeckSettings;
             GameConfigs.I.deck.Prepare();
             Сamera = Camera.main;
@@ -97,10 +94,10 @@ namespace GamePlay
                 }
             }
             
-            if (selectedCard != null)
+            if (SelectedCard != null)
             {
                 // Wait until card drag will end
-                while (selectedCard != null)
+                while (SelectedCard != null)
                 {
                     await Task.Yield();
                 }
@@ -136,22 +133,22 @@ namespace GamePlay
                 return;
             }
             
-            if (SomeCardSelected)
+            if (SelectedCard != null)
             {
-                MoveCardToHand(selectedCard, indexOfSelectedCard);
+                MoveCardToHand(SelectedCard, indexOfSelectedCard);
             }
 
-            selectedCard = card;
+            SelectedCard = card;
             
             Debug.Log($"Selected card {card.name}");
-            selectedCard.transform.SetParent(selectedCardParent);
-            selectedCard.SetRaycastTarget(false);
+            SelectedCard.transform.SetParent(selectedCardParent);
+            SelectedCard.SetRaycastTarget(false);
 
-            indexOfSelectedCard = cards.IndexOf(selectedCard);
-            cards.Remove(selectedCard);
+            indexOfSelectedCard = cards.IndexOf(SelectedCard);
+            cards.Remove(SelectedCard);
 
-            selectedCard.KillTweens();
-            selectedCard.AddTween(selectedCard.transform.DORotate(Vector3.zero, 0.2f));
+            SelectedCard.KillTweens();
+            SelectedCard.AddTween(SelectedCard.transform.DORotate(Vector3.zero, 0.2f));
 
             FitCards(false);
         }
@@ -193,19 +190,19 @@ namespace GamePlay
             else if (Mouse.current.leftButton.isPressed)
             {
                 var mousePosition = Mouse.current.position.ReadValue();
-                if (selectedCard != null)
+                if (SelectedCard != null)
                 {
                     var cardPosition = Сamera.ScreenToWorldPoint(mousePosition);
                     cardPosition.z = 0;
                     cardPosition.x = Mathf.Clamp(cardPosition.x, borders.MinX, borders.MaxX);
                     cardPosition.y = Mathf.Clamp(cardPosition.y, borders.MinY, borders.MaxY);
-                    selectedCard.transform.position = cardPosition;
+                    SelectedCard.transform.position = cardPosition;
                 }
             }
             else if (Mouse.current.leftButton.wasReleasedThisFrame)
             {
-                if (selectedCard == null) return;
-                selectedCard.Glow(false);
+                if (SelectedCard == null) return;
+                SelectedCard.Glow(false);
 
                 clickData.position = Mouse.current.position.ReadValue();
                 clickResult.Clear();
@@ -223,13 +220,13 @@ namespace GamePlay
 
                 if (playAreaController != null)
                 {
-                    playAreaController.AttachCard(selectedCard);
+                    playAreaController.AttachCard(SelectedCard);
                 }
                 else
                 {
-                    MoveCardToHand(selectedCard, indexOfSelectedCard);
+                    MoveCardToHand(SelectedCard, indexOfSelectedCard);
                 }
-                selectedCard = null;
+                SelectedCard = null;
             }
         }
 
@@ -343,11 +340,11 @@ namespace GamePlay
                 howManyAdded++;
             }
         }
-        
-        public void DeleteCard(PlayingCard card)
+
+        private void DeleteCard(PlayingCard card)
         {
             cards.Remove(card);
-            selectedCard = null;
+            SelectedCard = null;
             FitCards(false);
         }
 
