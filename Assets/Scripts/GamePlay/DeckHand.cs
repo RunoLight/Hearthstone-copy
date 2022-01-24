@@ -1,10 +1,14 @@
+using System;
 using System.Collections.Generic;
+using Configs;
 using DG.Tweening;
+using GamePlay;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 [System.Serializable]
 public struct MapBorders
@@ -24,10 +28,7 @@ public class DeckHand : MonoBehaviour
 {
     public static DeckHand I;
 
-    public PlayingCard cardPrefab;
-
-    public int minimalCardAmount;
-    public int maximalCardAmount;
+    [SerializeField] private DeckSettings settings;
 
     public MapBorders borders;
 
@@ -38,12 +39,9 @@ public class DeckHand : MonoBehaviour
     [SerializeField] private GraphicRaycaster graphicRaycaster;
 
     [HideInInspector] public int howManyAdded;
-    public float gapFromOneItemToTheNextOne;
 
     public List<PlayingCard> cards;
 
-    public float totalTwist = 20f;
-    public float scalingFactor = 0.01f;
 
     public Button btn;
 
@@ -54,10 +52,14 @@ public class DeckHand : MonoBehaviour
     private readonly PointerEventData clickData = new PointerEventData(EventSystem.current);
     private readonly List<RaycastResult> clickResult = new List<RaycastResult>();
 
-    private void Start()
+    private void Awake()
     {
         I = this;
+        settings = GameConfigs.I.DeckSettings;
+    }
 
+    private void Start()
+    {
         SpawnCards();
         FitCards(true);
         btn.onClick.AddListener(async () =>
@@ -154,8 +156,8 @@ public class DeckHand : MonoBehaviour
 
     public void SpawnCards()
     {
-        var cardsAmount = Random.Range(minimalCardAmount, maximalCardAmount);
-        for (var i = 0; i < cardsAmount; i++) cards.Add(Instantiate(cardPrefab, cardsParent));
+        var cardsAmount = Random.Range(settings.minimalCardAmount, settings.maximalCardAmount);
+        for (var i = 0; i < cardsAmount; i++) cards.Add(Instantiate(settings.cardPrefab, cardsParent));
 
         foreach (var card in cards)
         {
@@ -165,13 +167,13 @@ public class DeckHand : MonoBehaviour
                 if (isSelected)
                 {
                     c.transform.SetParent(selectedCardParent);
-                    c.transform.DOScale(new Vector3(1.2f, 1.2f, 1f), 0.3f);
+                    c.transform.DOScale(settings.scaleCardWhenSelected, settings.scaleCardDuration);
                 }
                 else
                 {
                     c.transform.SetParent(cardsParent);
                     c.transform.SetSiblingIndex(cards.FindIndex(pc => pc == c));
-                    c.transform.DOScale(new Vector3(1f, 1f, 1f), 0.3f);
+                    c.transform.DOScale(settings.scaleBack, settings.scaleBackDuration);
                 }
             };
         }
@@ -183,9 +185,9 @@ public class DeckHand : MonoBehaviour
 
         howManyAdded = 0;
         var numberOfCards = cards.Count;
-        var twistPerCard = totalTwist / numberOfCards;
+        var twistPerCard = settings.totalTwist / numberOfCards;
         var startTwist = numberOfCards % 2 == 0
-            ? totalTwist / 2f - twistPerCard / 2
+            ? settings.totalTwist / 2f - twistPerCard / 2
             : Mathf.Floor(numberOfCards / 2f) * twistPerCard;
 
         var idx = -1;
@@ -200,30 +202,30 @@ public class DeckHand : MonoBehaviour
             {
                 if (idx == halfCards)
                 {
-                    position.x += 0.5f * gapFromOneItemToTheNextOne;
+                    position.x += 0.5f * settings.gapFromOneItemToTheNextOne;
                 }
                 else if (idx == halfCards - 1)
                 {
-                    position.x -= 0.5f * gapFromOneItemToTheNextOne;
+                    position.x -= 0.5f * settings.gapFromOneItemToTheNextOne;
                 }
                 else if (idx < halfCards - 1)
                 {
                     var deltaFromCenter = Mathf.Abs(idx - (halfCards - 1));
 
-                    position.x -= 0.5f * gapFromOneItemToTheNextOne;
-                    position.x -= deltaFromCenter * gapFromOneItemToTheNextOne;
+                    position.x -= 0.5f * settings.gapFromOneItemToTheNextOne;
+                    position.x -= deltaFromCenter * settings.gapFromOneItemToTheNextOne;
                 }
                 else if (idx > halfCards)
                 {
                     var deltaFromCenter = Mathf.Abs(idx - halfCards);
-                    position.x += 0.5f * gapFromOneItemToTheNextOne;
-                    position.x += deltaFromCenter * gapFromOneItemToTheNextOne;
+                    position.x += 0.5f * settings.gapFromOneItemToTheNextOne;
+                    position.x += deltaFromCenter * settings.gapFromOneItemToTheNextOne;
                 }
             }
             else
             {
                 var deltaFromCenter = Mathf.Abs(idx - halfCards);
-                var amountToMove = deltaFromCenter * gapFromOneItemToTheNextOne;
+                var amountToMove = deltaFromCenter * settings.gapFromOneItemToTheNextOne;
                 if (idx < halfCards)
                     position.x -= amountToMove;
                 else if (idx > halfCards)
@@ -234,7 +236,7 @@ public class DeckHand : MonoBehaviour
 
             var twistForThisCard = startTwist - howManyAdded * twistPerCard;
             var rotationAnglesForThisCard = new Vector3(0, 0, twistForThisCard);
-            var nudgeThisCard = Mathf.Abs(twistForThisCard) * scalingFactor;
+            var nudgeThisCard = Mathf.Abs(twistForThisCard) * settings.scalingFactor;
             position.y -= nudgeThisCard;
 
             if (isInstant)

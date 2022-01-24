@@ -1,18 +1,23 @@
-using System.Collections;
-using System.Collections.Generic;
 using Configs;
 using UnityEngine;
-using UnityEngine.Serialization;
 
-public class GameConfigs : MonoBehaviour
+namespace GamePlay
 {
-    public static GameConfigs I;
-
-    public CardSettings CardSettings => cardSettings;
-    [SerializeField] private CardSettings cardSettings;
-    
-    void Start()
+    public class GameConfigs : MonoBehaviour
     {
-        I = this;
+        public static GameConfigs I;
+
+        GameConfigs()
+        {
+            I = this;
+        }
+    
+        public CardSettings CardSettings => cardSettings;
+        [SerializeField] private CardSettings cardSettings;
+
+        public DeckSettings DeckSettings => deckSettings;
+        [SerializeField] private DeckSettings deckSettings;
+
+
     }
 }

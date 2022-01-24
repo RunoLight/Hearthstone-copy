@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Configs;
 using DG.Tweening;
+using GamePlay;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
