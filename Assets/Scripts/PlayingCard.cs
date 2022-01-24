@@ -10,7 +10,7 @@ using UnityEngine.Networking;
 using UnityEngine.UI;
 using static UnityEngine.Networking.UnityWebRequest.Result;
 
-public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     // Mouse enter when true, exit when false
     public event Action<bool, PlayingCard> OnMouse;
@@ -27,7 +27,8 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     private Material materialInstance;
 
     private CancellationTokenSource glowTaskCancelSource;
-    private Task glowTask;
+    private Task glowUpTask;
+    private Task glowDownTask;
     
     private static readonly float MaxThickness = 1.3f;
     private static readonly float MinThickness = 0f;
@@ -77,6 +78,7 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
         private void Awake()
         {
+            canvasGroup = GetComponent<CanvasGroup>();
             cardImage.material = null;
             materialInstance = Instantiate(outlineMaterial);
             materialInstance.SetFloat(Thickness, MinThickness);
@@ -103,8 +105,25 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
     #endregion
 
+    public void Glow(bool active)
+    {
+        glowTaskCancelSource?.Cancel();
+        glowTaskCancelSource = new CancellationTokenSource();
+        if (active)
+        {
+            glowUpTask = GlowStart(glowTaskCancelSource.Token);
+        }
+        else
+        {
+            if (glowDownTask is { IsCompleted: false, IsCanceled: false } == false)
+            {
+                glowDownTask = GlowEnd(glowTaskCancelSource.Token);
+            }
+        }
+    }
+    
     #region PointerEvents
-
+    
     public void OnPointerEnter(PointerEventData eventData)
     {
         if (DeckHand.I.someCardGrabbed && DeckHand.I.selectedCard != this)
@@ -112,18 +131,16 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
             return;
         }
         OnMouse?.Invoke(true, this);
-        glowTaskCancelSource?.Cancel();
-        glowTaskCancelSource = new CancellationTokenSource();
-        glowTask = GlowStart(glowTaskCancelSource.Token);
+        Glow(true);
     }
     
     public void OnPointerExit(PointerEventData eventData)
     {
         OnMouse?.Invoke(false, this);
-        
-        glowTaskCancelSource?.Cancel();
-        glowTaskCancelSource = new CancellationTokenSource();
-        glowTask = GlowEnd(glowTaskCancelSource.Token);
+        if (DeckHand.I.selectedCard != this)
+        {
+            Glow(false);
+        }
     }
 
     #endregion
@@ -158,7 +175,6 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
             timePerOneDelta = PropertyChangingTotalDuration / totalDelta;
         do
         {
-            Debug.Log(timePerOneDelta);
             await Task.Delay(TimeSpan.FromSeconds(timePerOneDelta));
 
             delta = currValue > to ? -1 :
@@ -173,6 +189,13 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         await Task.Delay(TimeSpan.FromSeconds(PropertyEndedAdditionalWaitDuration));
     }
 
+    private CanvasGroup canvasGroup;
+    public void SetRaycastTarget(bool isActive)
+    {
+        canvasGroup.interactable = isActive;
+        canvasGroup.blocksRaycasts = isActive;
+    }
+    
     #region GlowEffect
 
     private async Task GlowStart(CancellationToken t)
@@ -197,6 +220,7 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     private async Task GlowEnd(CancellationToken t)
     {
         var mat = cardImage.material;
+     if (mat.name == "Default UI Material") return;
         var newThickness = mat.GetFloat(Thickness);
         while (newThickness > MinThickness)
         {
@@ -212,4 +236,16 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     }
 
     #endregion
+
+    public void OnBeginDrag(PointerEventData eventData)
+    {
+    }
+
+    public void OnDrag(PointerEventData eventData)
+    {
+    }
+
+    public void OnEndDrag(PointerEventData eventData)
+    {
+    }
 }

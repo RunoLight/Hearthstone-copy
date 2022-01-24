@@ -65,7 +65,6 @@ public class DeckHand : MonoBehaviour
         {
             clickData.position = Mouse.current.position.ReadValue();
             clickResult.Clear();
-
             graphicRaycaster.Raycast(clickData, clickResult);
 
             if (clickResult.Count == 0) return;
@@ -76,6 +75,7 @@ public class DeckHand : MonoBehaviour
                 selectedCard = cardComponent;
                 Debug.Log($"Selected card {cardComponent.name}");
                 selectedCard.transform.SetParent(selectedCardParent);
+                selectedCard.SetRaycastTarget(false);
                 someCardGrabbed = true;
             }
         }
@@ -91,15 +91,39 @@ public class DeckHand : MonoBehaviour
         }
         else if (Mouse.current.leftButton.wasReleasedThisFrame)
         {
-            if (selectedCard != null)
+            if (selectedCard == null) return;
+            selectedCard.Glow(false);
+                
+            clickData.position = Mouse.current.position.ReadValue();
+            clickResult.Clear();
+            graphicRaycaster.Raycast(clickData, clickResult);
+            if (clickResult.Count == 0) return;
+
+            PlayAreaController playAreaController = null;
+            foreach (RaycastResult result in clickResult)
+            {
+                if (result.gameObject.TryGetComponent(out playAreaController))
+                {
+                    break;
+                }
+            }
+
+            if (playAreaController != null)
+            {
+                playAreaController.AttachCard(selectedCard);
+                // selectedCard.transform.DOMove(playAreaController.transform.position, 1f);
+
+            }
+            else
             {
                 selectedCard.transform.DOMove(handDeckCenter.position, 1f);
-                selectedCard = null;
-                someCardGrabbed = false;
+                selectedCard.SetRaycastTarget(true);
             }
+            
+            selectedCard = null;
+            someCardGrabbed = false;
         }
     }
-
 
     public void SpawnCards()
     {
@@ -185,16 +209,12 @@ public class DeckHand : MonoBehaviour
 
             var twistForThisCard = startTwist - howManyAdded * twistPerCard;
 
-            // item.transform.Rotate( 0f, 0f, -6f );
-            // twistForThisCard = twistForThisCard * Random.Range(0.9f, 1.1f);
             item.transform.Rotate(0f, 0f, twistForThisCard);
 
             var nudgeThisCard = Mathf.Abs(twistForThisCard);
             nudgeThisCard *= scalingFactor;
-            // nudgeThisCard = nudgeThisCard * Random.Range(0.9f, 1.1f);
             item.transform.Translate(0f, -nudgeThisCard, 0f);
 
-            // items.Remove(item);
             howManyAdded++;
         }
     }

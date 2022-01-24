@@ -220,6 +220,7 @@ GameObject:
   - component: {fileID: 3314156714600974377}
   - component: {fileID: 3314156714600974383}
   - component: {fileID: 3314156715523707926}
+  - component: {fileID: 4100588245288278205}
   m_Layer: 5
   m_Name: Card
   m_TagString: Untagged
@@ -273,14 +274,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5c5fc1ca7322f446961f756b4a6d283, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cardImage: {fileID: 5318429002056429457}
-  outlineMaterial: {fileID: 2100000, guid: a64118545375ef34c88b3378008ac76a, type: 2}
   textTitle: {fileID: 3314156716495468938}
   textDescription: {fileID: 3314156716222843558}
   textHealth: {fileID: 7547865835254774799}
   textDamage: {fileID: 3985525426531937792}
   textManaCost: {fileID: 5779191225635514656}
   imageAvatar: {fileID: 500340669739902898}
+  cardImage: {fileID: 5318429002056429457}
+  outlineMaterial: {fileID: 2100000, guid: a64118545375ef34c88b3378008ac76a, type: 2}
+--- !u!225 &4100588245288278205
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3314156714600974376}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &3314156716222843552
 GameObject:
   m_ObjectHideFlags: 0
