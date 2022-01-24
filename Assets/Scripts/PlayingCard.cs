@@ -33,14 +33,78 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     private static readonly float MinThickness = 0f;
     private static readonly float ThicknessStep = 0.06f;
     private static readonly int Thickness = Shader.PropertyToID("_Thickness");
+
+    private static readonly Vector3 PropertySelectedScale = new Vector3(1.4f, 1.4f, 1f);
+    private static readonly float PropertySelectionDuration = 0.3f;
     
-    private void Awake()
+    private static readonly Vector3 PropertyUnselectedScale = Vector3.one;
+    private static readonly float PropertyUnselectDuration = 0.3f;
+    
+    private static readonly float PropertyEndedAdditionalWaitDuration = 0.2f;
+    private static readonly float PropertyChangingTotalDuration = 1f;
+    private static readonly float PropertyChangingTotalDurationShort = 0.2f;
+    private static readonly int MaximumDeltaForShortDuration = 3;
+
+    #region Properties
+
+    public int Damage { get; private set; }
+    public async Task SetDamage(int value)
     {
-        cardImage.material = null;
-        materialInstance = Instantiate(outlineMaterial);
-        materialInstance.SetFloat(Thickness, 0f);
+        var t = SetParameterSmoothly(Damage, value, textDamage);
+        Damage = value;
+        await t;
     }
+
+    public int Health { get; private set; }
+    public async Task SetHealth(int value)
+    {
+        var t = SetParameterSmoothly(Health, value, textDamage);
+        Health = value;
+        await t;
+    }
+
+    public int ManaCost { get; private set; }
+    public async Task SetManaCost(int value)
+    {
+        var t = SetParameterSmoothly(ManaCost, value, textDamage);
+        ManaCost = value;
+        await t;
+    }
+
+    #endregion
     
+    #region Initialization
+
+        private void Awake()
+        {
+            cardImage.material = null;
+            materialInstance = Instantiate(outlineMaterial);
+            materialInstance.SetFloat(Thickness, MinThickness);
+        }
+        
+        IEnumerator Start()
+        {
+            Sprite sprite = null;
+    
+            var request = UnityWebRequestTexture.GetTexture("https://picsum.photos/200/300");
+            yield return request.SendWebRequest();
+            if (request.result != Success)
+            {
+                Debug.Log(request.error);
+            }
+            else
+            {
+                var texture = ((DownloadHandlerTexture)request.downloadHandler).texture;
+                sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0, 0));
+            }
+    
+            Setup("Kronx Dragongoof", "Description", 2, 3, 4, sprite);
+        }
+
+    #endregion
+
+    #region PointerEvents
+
     public void OnPointerEnter(PointerEventData eventData)
     {
         if (DeckHand.I.someCardGrabbed && DeckHand.I.selectedCard != this)
@@ -62,72 +126,51 @@ public class PlayingCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         glowTask = GlowEnd(glowTaskCancelSource.Token);
     }
 
-    public async Task SetSomething(int amount)
-    {
-        var currentSomething = Convert.ToInt32(textDamage.text);
-
-        await textDamage.transform.DOScale(new Vector3(1.4f, 1.4f, 1f), 0.3f);
-
-        var totalTime = 1f;
-        var totalDelta = Mathf.Abs(currentSomething - amount);
-        if (totalDelta < 3)
-        {
-            totalTime = 0.2f;
-        }
-        var timePerOneDelta = totalTime / totalDelta;
-        
-        int delta;
-
-        do
-        {
-            await Task.Delay(TimeSpan.FromSeconds(timePerOneDelta));
-
-            delta = currentSomething > amount ? -1 :
-                    currentSomething < amount ?  1 :
-                                                 0;
-
-            currentSomething += delta;
-            textDamage.text = currentSomething.ToString();
-            
-        } while (delta != 0);
-        var t = textDamage.transform.DOScale(new Vector3(1f, 1f, 1f), 0.3f);
-        await t;
-        await Task.Delay(TimeSpan.FromSeconds(0.2f));
-    }
-
-    public int GetSomething()
-    {
-        return Convert.ToInt32(textDamage.text);
-    }
-
-
+    #endregion
+    
     private void Setup(string title, string description, int health, int damage, int manaCost, Sprite avatar)
     {
         textTitle.text = title;
         textDescription.text = description;
-        textHealth.text = health.ToString();
-        textDamage.text = damage.ToString();
-        textManaCost.text = manaCost.ToString();
         imageAvatar.sprite = avatar;
+        
+        Health = health;
+        textHealth.text = health.ToString();
+        Damage = damage;
+        textDamage.text = damage.ToString();
+        ManaCost = manaCost;
+        textManaCost.text = manaCost.ToString();
     }
 
-    IEnumerator Start()
+    private static async Task SetParameterSmoothly(int from, int to, TMP_Text textField)
     {
-        Sprite sprite = null;
-
-        var request = UnityWebRequestTexture.GetTexture("https://picsum.photos/200/300");
-        yield return request.SendWebRequest();
-        if (request.result != Success)
-        {
-            Debug.Log(request.error);
-        }
+        if (from == to) return;
+        
+        var currValue = from;
+        float timePerOneDelta;
+        int delta;
+        
+        await textField.transform.DOScale(PropertySelectedScale,PropertySelectionDuration);
+        var totalDelta = Mathf.Abs(from - to);
+        if (totalDelta < MaximumDeltaForShortDuration)
+            timePerOneDelta = PropertyChangingTotalDurationShort / totalDelta;
         else
+            timePerOneDelta = PropertyChangingTotalDuration / totalDelta;
+        do
         {
-            var texture = ((DownloadHandlerTexture)request.downloadHandler).texture;
-            sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0, 0));
-        }
+            Debug.Log(timePerOneDelta);
+            await Task.Delay(TimeSpan.FromSeconds(timePerOneDelta));
 
-        Setup("Kronx Dragongoof", "Description", 2, 3, 4, sprite);
+            delta = currValue > to ? -1 :
+                    currValue < to ?  1 :
+                                       0;
+            currValue += delta;
+            textField.text = currValue.ToString();
+            
+        } while (delta != 0);
+        
+        await textField.transform.DOScale(PropertyUnselectedScale, PropertyUnselectDuration);
+        await Task.Delay(TimeSpan.FromSeconds(PropertyEndedAdditionalWaitDuration));
     }
 
     #region GlowEffect

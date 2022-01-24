@@ -48,11 +48,11 @@ public class DeckHand : MonoBehaviour
             btn.interactable = false;
             foreach (var card in cards)
             {
-                var oldAmount = card.GetSomething();
+                var oldAmount = card.Health;
                 var newAmount = oldAmount;
                 while (oldAmount == newAmount) newAmount = Random.Range(-2, 9);
 
-                await card.SetSomething(newAmount);
+                await card.SetHealth(newAmount);
             }
 
             btn.interactable = true;
@@ -68,17 +68,15 @@ public class DeckHand : MonoBehaviour
 
             graphicRaycaster.Raycast(clickData, clickResult);
 
-            if (clickResult.Count != 0)
+            if (clickResult.Count == 0) return;
+            
+            var cardComponent = clickResult[0].gameObject.GetComponentInParent<PlayingCard>();
+            if (cardComponent != null)
             {
-                var ui_element = clickResult[0].gameObject;
-                var cardComponent = ui_element.GetComponentInParent<PlayingCard>();
-                if (cardComponent != null)
-                {
-                    selectedCard = cardComponent;
-                    Debug.Log($"Selected card {cardComponent.name}");
-                    selectedCard.transform.SetParent(selectedCardParent);
-                    someCardGrabbed = true;
-                }
+                selectedCard = cardComponent;
+                Debug.Log($"Selected card {cardComponent.name}");
+                selectedCard.transform.SetParent(selectedCardParent);
+                someCardGrabbed = true;
             }
         }
         else if (Mouse.current.leftButton.isPressed)
@@ -95,7 +93,7 @@ public class DeckHand : MonoBehaviour
         {
             if (selectedCard != null)
             {
-                selectedCard.transform.DOMove(Vector3.one, 1f);
+                selectedCard.transform.DOMove(handDeckCenter.position, 1f);
                 selectedCard = null;
                 someCardGrabbed = false;
             }
