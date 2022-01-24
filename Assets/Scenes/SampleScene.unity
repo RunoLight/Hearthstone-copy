@@ -462,7 +462,7 @@ MonoBehaviour:
   gapFromOneItemToTheNextOne: 1
   cards: []
   totalTwist: 20
-  scalingFactor: 1.5
+  scalingFactor: 0.015
   btn: {fileID: 1309484534}
 --- !u!4 &1084778457
 Transform:
