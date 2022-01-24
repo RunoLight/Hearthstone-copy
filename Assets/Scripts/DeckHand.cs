@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using DG.Tweening;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
@@ -17,8 +19,10 @@ public class DeckHand : MonoBehaviour
     public Transform start; //Location where to start adding my cards
     public Transform cardsParent; //The hand panel reference
     public Transform selectedCardParent; //The hand panel reference
-    
-    
+
+    [SerializeField] private GraphicRaycaster graphicRaycaster;
+    private PointerEventData clickData = new PointerEventData(EventSystem.current);
+    private List<RaycastResult> clickResult = new List<RaycastResult>();
     
     [HideInInspector] public int howManyAdded;
     public float gapFromOneItemToTheNextOne; //the gap I need between each card
@@ -29,7 +33,50 @@ public class DeckHand : MonoBehaviour
     public float scalingFactor = 0.01f;
 
     public Button btn;
+
+    private PlayingCard selectedCard = null;
     
+    private void Update()
+    {
+        if (Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            clickData.position = Mouse.current.position.ReadValue();
+            clickResult.Clear();
+            
+            graphicRaycaster.Raycast(clickData, clickResult);
+
+            if (clickResult.Count != 0)
+            {
+                GameObject ui_element = clickResult[0].gameObject;
+                var cardComponent = ui_element.GetComponentInParent<PlayingCard>();
+                if (cardComponent != null)
+                {
+                    selectedCard = cardComponent;
+                    Debug.Log($"Selected card {cardComponent.name}");
+                    selectedCard.transform.SetParent(selectedCardParent);
+                }
+            }
+        }
+        else if (Mouse.current.leftButton.isPressed)
+        {
+            var mousePosition = Mouse.current.position.ReadValue();
+            if (selectedCard != null)
+            {
+                var cardPosition = Camera.main.ScreenToWorldPoint(mousePosition);
+                cardPosition.z = 0;
+                selectedCard.transform.position = cardPosition;
+            }
+        }
+        else if (Mouse.current.leftButton.wasReleasedThisFrame)
+        {
+            if (selectedCard != null)
+            {
+                selectedCard.transform.DOMove(Vector3.one, 1f);
+                selectedCard = null;
+            }
+        }
+    }
+
     private void Start()
     {
         SpawnCards();
