@@ -241,6 +241,7 @@ namespace GamePlay
             {
                 var data = currentHandData[i];
                 var newCard = Instantiate(settings.cardPrefab, cardsParent);
+                newCard.name = $"Card [{data.title}]";
                 newCard.Setup(data);
                 newCard.OnHover += (isSelected, c) =>
                 {
@@ -344,7 +345,10 @@ namespace GamePlay
         private void DeleteCard(PlayingCard card)
         {
             cards.Remove(card);
-            SelectedCard = null;
+            if (SelectedCard == card)
+            {
+                SelectedCard = null;
+            }
             FitCards(false);
         }
 

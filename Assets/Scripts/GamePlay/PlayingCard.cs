@@ -84,8 +84,9 @@ namespace GamePlay
             await t;
             if (Health <= 0)
             {
-                Debug.Log("Killing card");
+                Debug.Log($"Killing card {gameObject.name}");
                 KillTweens();
+                transform.DOKill();
                 OnDestroy?.Invoke();
                 Destroy(gameObject);
                 return;
